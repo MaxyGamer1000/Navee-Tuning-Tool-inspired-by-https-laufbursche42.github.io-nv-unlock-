@@ -1,341 +1,466 @@
-<html lang="de" data-theme="dark"><head>
+<!DOCTYPE html>
+<html lang="de" data-theme="dark">
+<head>
 <meta charset="utf-8">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title data-t="pageTitle">Laufbursche NAVEE Tool</title>
-<link rel="icon" type="image/svg+xml" href="favicon.svg">
-<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
-<link rel="apple-touch-icon" sizes="180x180" href="favicon-180.png">
-<link rel="stylesheet" href="./styles/styles.css">
+<title>Laufbursche NAVEE Tool</title>
+<style>
+  :root {
+    --bg-color: #0d0f12;
+    --card-bg: #161b22;
+    --border-color: #30363d;
+    --text-color: #c9d1d9;
+    --heading-color: #f0f6fc;
+    --accent-color: #238636;
+    --accent-hover: #2ea043;
+    --warn-color: #da3633;
+    --subtext: #8b949e;
+  }
+  [data-theme="light"] {
+    --bg-color: #f6f8fa;
+    --card-bg: #ffffff;
+    --border-color: #d0d7de;
+    --text-color: #1f2328;
+    --heading-color: #0f1419;
+    --accent-color: #1f883d;
+    --accent-hover: #1a7f37;
+    --warn-color: #cf222e;
+    --subtext: #57606a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 16px;
+  }
+  .wrap { max-width: 600px; margin: 0 auto; }
+  header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  h1 { font-size: 1.3rem; margin: 0; color: var(--heading-color); }
+  .status {
+    font-size: 0.8rem; padding: 4px 10px; border-radius: 20px;
+    background: #333; color: #fff; font-weight: bold; margin-right: 8px;
+  }
+  .status[data-state="connected"] { background: #238636; }
+  .status[data-state="connecting"] { background: #d29922; }
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+  h2 { font-size: 1rem; margin-top: 0; margin-bottom: 12px; color: var(--heading-color); }
+  .hint { font-size: 0.85rem; color: var(--subtext); line-height: 1.4; margin-bottom: 12px; }
+  .row { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; justify-content: space-between; }
+  .row label { font-size: 0.95rem; font-weight: 500; }
+  input[type="password"], select {
+    padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color);
+    background: var(--bg-color); color: var(--text-color); font-size: 0.95rem; outline: none;
+  }
+  button {
+    padding: 10px 16px; border-radius: 8px; border: none; font-weight: bold;
+    cursor: pointer; background: var(--accent-color); color: white; transition: background 0.2s;
+  }
+  button:hover:not(:disabled) { background: var(--accent-hover); }
+  button.primary { width: 100%; padding: 12px; font-size: 1rem; }
+  button.danger { background: var(--warn-color); }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px; }
+  .tile { background: var(--bg-color); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; text-align: center; }
+  .tile b { display: block; font-size: 1.1rem; color: var(--heading-color); margin-bottom: 2px; }
+  .tile small { font-size: 0.75rem; color: var(--subtext); }
+  
+  /* Toggle Switch Design */
+  .switch { position: relative; display: inline-block; width: 46px; height: 24px; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #333; transition: .3s; border-radius: 24px; }
+  .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+  input:checked + .slider { background-color: var(--accent-color); }
+  input:checked + .slider:before { transform: translateX(22px); }
+  input:disabled + .slider { opacity: 0.4; cursor: not-allowed; }
+
+  pre#log {
+    background: #000; color: #39ff14; padding: 12px; border-radius: 8px;
+    font-size: 0.75rem; max-height: 220px; overflow-y: auto; white-space: pre-wrap; font-family: monospace;
+  }
+</style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <h1>Laufbursche <span data-t="brandSub">NAVEE Tool</span></h1>
-    <div class="head-right">
+    <h1>Laufbursche <span id="t-brand">NAVEE Tool</span></h1>
+    <div>
       <span class="status" id="status" data-state="disconnected">getrennt</span>
-      <div class="head-tools">
-        <button type="button" class="theme-btn" id="btn-theme" aria-label="Auf helle Darstellung umschalten" title="Auf helle Darstellung umschalten">☀</button>
-        <div class="langs" id="langs" role="group" aria-label="Sprache">
-          <button type="button" data-lang="de" aria-pressed="true">DE</button>
-          <button type="button" data-lang="en" aria-pressed="false">EN</button>
-        </div>
-      </div>
+      <button type="button" id="btn-lang">DE</button>
+      <button type="button" id="btn-theme">☀/🌙</button>
     </div>
   </header>
 
-  <div class="sunset-banner" role="alert" data-t="sunsetBannerHtml"><b>Dieses Tool zieht um.</b> Dieses Repo wird <b>nicht mehr weiterentwickelt</b> - bitte wechsle zum neuen Tool: <a href="https://lb-tool-web.pages.dev/" target="_blank" rel="noopener">lb-tool-web.pages.dev</a>. Probleme beim Wechsel? Öffne ein <a href="https://github.com/Laufbursche42/Laufbursche42/issues/new" target="_blank" rel="noopener">Issue auf GitHub</a> oder schick eine <a href="https://www.escooter-stammtisch.de/index.php?user/6497-laufbursche/" target="_blank" rel="noopener">PN im eScooter-Stammtisch</a>.</div>
-
+  <!-- VERBINDUNG -->
   <div class="card">
-    <h2 data-t="s1Title">So fängst du an</h2>
-    <p class="hint" data-t="sub">Live über Web Bluetooth mit deinem NAVEE-Scooter reden. Läuft in Chrome (Android/Desktop) oder Bluefy (iOS). Nichts verlässt dein Gerät.</p>
-    <p class="hint infobox" data-t="androidApp">Android-Nutzer: Es gibt eine native Android-App, die dasselbe ohne Browser macht - <a href="https://github.com/Laufbursche42/nv-lb-edition" target="_blank" rel="noopener">nv-lb-edition</a>. Sie umgeht die Web-Bluetooth-Hürden (manche Handys, etwa Samsung mit Auto Blocker, blockieren die Browser-Verbindung). Diese Web-Seite ist der Weg für iOS.</p>
-    <p class="hint" data-t="startHintGuide">Neu hier? In der <a href="./pages/GUIDE.de.md.html" data-doc="GUIDE" data-t="footGuide">Anleitung</a> steht jeder Schritt.</p>
-    <p class="hint" data-t="modelNote">Entsperren geht nur mit diesen Modellen: NAVEE XT5 (Ultra, Pro, Max), UT5 Ultra X und E45/E60 Pro. Bei allen anderen Modellen (etwa dem NT5) sitzt die Drossel fest in der Firmware - dort ist ein Firmware-Patch nötig, der auf den Scooter geflasht werden muss.</p>
-    <p class="warn" data-t="expWarn">Machbarkeitsstudie: Diese Seite zeigt, was das Bluetooth-Protokoll eines NAVEE-Scooters technisch möglich macht, sie ist kein fertiges Produkt. Fehlerfreier Betrieb wird nicht versprochen, es gibt keinerlei Gewährleistung. Alles, was du hier tust, tust du auf eigenes Risiko. <a href="#" data-open-disclaimer="">Haftungsausschluss lesen</a>. Probleme oder Fehler beim Testen bitte per DM an <a href="https://www.escooter-stammtisch.de/index.php?user/6497-laufbursche/" target="_blank" rel="noopener">Laufbursche im escooter-stammtisch</a> oder als <a href="https://github.com/Laufbursche42/nv-unlock/issues" target="_blank" rel="noopener">GitHub-Issue</a> melden.</p>
-    <p class="hint" data-t="ownDevice">Nur am eigenen Fahrzeug auf privatem Gelände. Das Anheben der Höchstgeschwindigkeit hebt die Drossel auf, die ABE erlischt und der Betrieb auf öffentlichen Wegen ist dann nicht erlaubt.</p>
+    <h2 id="t-head-conn">Verbindung</h2>
+    <div class="row" style="justify-content: flex-start;">
+      <input id="uid-in" type="password" placeholder="Konto-userId (128-bit MD5)" style="width: 100%;">
+    </div>
+    <p class="hint" id="t-hint-uid">Falls verlangt, gib hier den MD5-Hash deiner User-ID aus der Original-App ein.</p>
+    <button class="primary" id="btn-conn">Verbinden</button>
   </div>
 
+  <!-- STATUS -->
   <div class="card">
-    <h2 data-t="s2Title">Verbindung</h2>
-    <div class="row">
-      <label class="full" data-t="uidLabel">NAVEE Konto-userId (optional)</label>
-      <input id="uid-in" type="password" inputmode="numeric" pattern="[0-9]*" autocapitalize="off" autocomplete="off" spellcheck="false" data-t-ph="uidPlaceholder" placeholder="Konto-userId (nur die Zahl)">
-      <button type="button" class="help-btn" data-help="account" aria-label="Info">?</button>
-    </div>
-    <div class="row">
-      <label><input type="checkbox" class="reveal-cb" data-reveal="uid-in"> <span data-t="revealShow">Eingabe anzeigen</span></label>
-    </div>
-    <p class="hint" data-t="uidNeed">Die userId ist optional. Die normalen Funktionen (Schloss, Tempomat, Gang, Kickstart) plus das Status-Lesen brauchen sie nicht - einfach verbinden. Trage sie nur ein, falls dein Roller die Verbindung ohne Auth ablehnt. <b>Das ist nicht die NAVEE-ID, die du in der App siehst</b>, sondern die numerische Konto-userId. Sie wird lokal im Browser gespeichert und lässt sich unten wieder löschen. Woher du die Zahl bekommst: siehe das Fragezeichen.</p>
-    <p class="hint"><a href="#" id="btn-clearid" data-t="btnClearId">Gespeicherte userId/Anmeldung löschen</a></p>
-    <div class="row">
-      <label><input type="checkbox" id="showall"> <span data-t="showAll">Alle Bluetooth-Geräte zeigen (nur falls NAVEE nicht auftaucht)</span></label>
-    </div>
-    <details>
-      <summary data-t="advTitle">Android: Auth-Frame / btsnoop_hci.log statt userId verwenden</summary>
-      <p class="hint" data-t="advHint">Falls du die userId-Zahl nicht hast: unter Android das Bluetooth-Log hochladen (die Seite holt die userId automatisch heraus), einen mitgeschnittenen Auth-Frame der App einfügen oder bei einem noch nie gebundenen Roller ganz ohne ID verbinden (Häkchen unten).</p>
-      <div class="logdrop">
-        <div class="row"><label data-t="logUploadLabel">Android: Bluetooth-Log hochladen (userId automatisch)</label><button type="button" class="help-btn" data-help="logupload" aria-label="Info">?</button></div>
-        <div class="row"><input type="file" id="log-in" accept=".log,.gz,.zip,.cfa,application/zip,application/gzip"></div>
-      </div>
-      <div class="row">
-        <label><input type="checkbox" id="unbound"> <span data-t="unboundLabel">Ungebundener Scooter (zufällige userId nutzen)</span></label>
-      </div>
-      <div class="row">
-        <input id="authhex-in" type="password" autocapitalize="off" autocomplete="off" spellcheck="false" data-t-ph="authhexPlaceholder" placeholder="oder echten Auth-Frame der App als Hex einfügen">
-        <button type="button" class="help-btn" data-help="authhex" aria-label="Info">?</button>
-      </div>
-      <div class="row">
-        <label><input type="checkbox" class="reveal-cb" data-reveal="authhex-in"> <span data-t="revealShow">Eingabe anzeigen</span></label>
-      </div>
-    </details>
-    <p class="hint" data-t="controlsHint">Der Scooter muss an und in Reichweite sein. Er erscheint im Auswahldialog unter seinem Namen (NAVEE...) genau wie in der Hersteller-App und authentifiziert sich automatisch.</p>
-    <div class="btns">
-      <button class="primary span2" id="btn-conn">Verbinden</button>
-    </div>
-  </div>
-
-  <div class="card">
-    <h2 data-t="liveTitle">Status vom Scooter</h2>
+    <h2 id="t-head-status">Scooter Status</h2>
     <div class="grid">
-      <div class="tile tile-wide"><b id="t-model">-</b><small data-t="tileModel">Modell</small></div>
-      <div class="tile"><b id="t-region">-</b><small data-t="tileRegion">Region</small></div>
-      <div class="tile"><b id="t-sku">-</b><small data-t="tileSku">SKU</small></div>
-      <div class="tile"><b id="t-max">-</b><small data-t="tileMax">Max-Speed</small></div>
-      <div class="tile"><b id="t-limit">-</b><small data-t="tileLimit">Limit</small></div>
+      <div class="tile"><b id="t-model">-</b><small id="t-lbl-model">Modell</small></div>
+      <div class="tile"><b id="t-lock-status">Entsperrt</b><small id="t-lbl-lock">Sperrzustand</small></div>
+      <div class="tile" style="grid-column: span 2;"><b id="t-sn">-</b><small id="t-lbl-sn">Seriennummer</small></div>
     </div>
-    <div class="row"><span class="fin"><span data-t="serialLabel">Seriennummer:</span> <span id="t-sn">-</span></span></div>
-    <p class="hint" data-t="liveHint">Region, SKU, Max- und Limit-Geschwindigkeit sowie die Seriennummer werden nach dem Verbinden automatisch gelesen. Die rohen Meldungen stehen als Hex im Log.</p>
   </div>
 
-  <div class="card" id="fn-card">
-    <div class="card-head"><h2 data-t="fnTitle">Funktionen</h2><button type="button" class="help-btn" data-help="fn" aria-label="Info">?</button></div>
-    <p class="hint" id="fn-model" data-t="fnConnect">Zuerst verbinden - danach erscheinen hier die Funktionen, die dein Modell laut Firmware kann.</p>
-    <p class="hint-danger" id="fn-untested" hidden></p>
-    <div class="set-row" id="row-lock" hidden>
-      <label data-t="lblLock">Wegfahrsperre</label>
-      <select id="lock-in" disabled><option value="0" data-t="optUnlocked">Entsperrt</option><option value="1" data-t="optLocked">Gesperrt</option></select>
-      <button id="btn-locksel" data-t="btnSend" disabled>Setzen</button>
-    </div>
-    <div class="set-row" id="row-cruise" hidden>
-      <label data-t="lblCruise">Tempomat</label>
-      <select id="cruise-in" disabled><option value="1" data-t="optOn">An</option><option value="0" data-t="optOff">Aus</option></select>
-      <button id="btn-cruise" data-t="btnSend" disabled>Setzen</button>
-    </div>
-    <div class="set-row" id="row-zero" hidden>
-      <label data-t="lblZero">Startgeschwindigkeit</label>
-      <select id="zero-in" disabled><option value="0" data-t="zeroOnly" hidden>0 (Zero-Start)</option><option value="1" hidden>1</option><option value="2" hidden>2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select>
-      <button id="btn-zero" data-t="btnSend" disabled>Setzen</button>
-    </div>
-    <p class="hint" data-t="fnAppNote">Hinweis: Die Hersteller-App blendet Tempomat auf EU-Geräten oft aus und bietet Zero-Start nur in der USA-Version. Firmwareseitig geht beides trotzdem - deshalb zeigt diese Seite es an, wo das Modell es kann. Die Wegfahrsperre ist bei jedem Modell verfügbar.</p>
-  </div>
-
-  <div class="card" id="tu-card" hidden>
-    <h2 data-t="tuTitle">Freischalten (Tuning)</h2>
-    <div class="btns">
-      <button class="primary span2" id="btn-regiontoggle" disabled>Speed freischalten</button>
-      <button class="span2" id="btn-speedlock" disabled>Drossel sperren (22 km/h)</button>
-      <button class="span2" id="btn-diag" data-t="btnDiag" disabled>Diagnose (Line-Test)</button>
-    </div>
-    <p class="hint" id="tu-model-hint" hidden></p>
-    <p class="hint" id="tu-hint" data-t="tuHint">Der Gang-Hebel kommandiert die firmwareseitig mögliche Höchstgeschwindigkeit - kein Flashen, keine bleibende Änderung, kein Brick-Risiko. Der erreichte Wert wird von der Firmware auf SKU und Region des Geräts begrenzt und ist nicht frei einstellbar. Die Details je Modell stehen im Hinweis oben.</p>
-    <p class="hint" id="tu-behavior" data-t="tuBehavior">Verhalten am Gerät: Das Display bleibt in D, die Boost-Taste ist ohne Funktion. Ein Wechsel in Modus S beziehungsweise ein Neustart hebt den Trick auf und stellt die normalen Modi wieder her - also je Fahrt neu senden.</p>
-  </div>
-
-  <div class="card" id="tele-card">
-    <h2 data-t="teleTitle">Telemetrie</h2>
-    <p class="hint" id="tele-empty" data-t="teleEmpty">Nach dem Verbinden erscheinen hier nur die Werte, die dein Scooter meldet.</p>
-    <div class="grid">
-      <div class="tile" id="tile-batt" hidden><b id="tv-batt">-</b><small data-t="ttBatt">Akku</small></div>
-      <div class="tile" id="tile-speed" hidden><b id="tv-speed">-</b><small data-t="ttSpeed">Geschwindigkeit</small></div>
-      <div class="tile" id="tile-mode" hidden><b id="tv-mode">-</b><small data-t="ttMode">Fahrmodus</small></div>
-      <div class="tile" id="tile-range" hidden><b id="tv-range">-</b><small data-t="ttRange">Restreichweite</small></div>
-      <div class="tile" id="tile-total" hidden><b id="tv-total">-</b><small data-t="ttTotal">Gesamtstrecke</small></div>
-      <div class="tile" id="tile-volt" hidden><b id="tv-volt">-</b><small data-t="ttVolt">Spannung</small></div>
-      <div class="tile" id="tile-curr" hidden><b id="tv-curr">-</b><small data-t="ttCurr">Strom</small></div>
-      <div class="tile" id="tile-temp" hidden><b id="tv-temp">-</b><small data-t="ttTemp">Temperatur</small></div>
-      <div class="tile" id="tile-health" hidden><b id="tv-health">-</b><small data-t="ttHealth">Akku-Gesundheit</small></div>
-      <div class="tile" id="tile-cycles" hidden><b id="tv-cycles">-</b><small data-t="ttCycles">Ladezyklen</small></div>
-      <div class="tile" id="tile-fault" hidden><b id="tv-fault">-</b><small data-t="ttFault">Fehlercode</small></div>
-      <div class="tile" id="tile-fw-meter" hidden><b id="tv-fw-meter">-</b><small data-t="ttFwMeter">FW Anzeige</small></div>
-      <div class="tile" id="tile-fw-bldc" hidden><b id="tv-fw-bldc">-</b><small data-t="ttFwBldc">FW Motor</small></div>
-      <div class="tile" id="tile-fw-bms" hidden><b id="tv-fw-bms">-</b><small data-t="ttFwBms">FW Batterie</small></div>
-      <div class="tile" id="tile-fw-screen" hidden><b id="tv-fw-screen">-</b><small data-t="ttFwScreen">FW Display</small></div>
-      <div class="tile" id="tile-fw-uwb" hidden><b id="tv-fw-uwb">-</b><small data-t="ttFwUwb">FW UWB</small></div>
-    </div>
-    <p class="hint" data-t="teleHint">Live-Werte vom Scooter. Es erscheint nur, was das Modell liefert.</p>
-  </div>
-
+  <!-- EINSTELLUNGEN -->
   <div class="card">
-    <div class="card-head"><h2 data-t="moreTitle">Weitere Einstellungen</h2><button type="button" class="help-btn" data-help="more" aria-label="Info">?</button></div>
-    <p class="hint" id="more-empty" data-t="moreEmpty">Nach dem Verbinden erscheinen hier nur die Einstellungen, die dein Scooter tatsächlich unterstützt.</p>
-    <div class="set-row" id="row-drive" hidden>
-      <label data-t="lblDrive">Dual-Drive</label>
-      <select id="drive-in" disabled><option value="1" data-t="optOn">An</option><option value="0" data-t="optOff">Aus</option></select>
-      <button id="btn-drive" data-t="btnSend" disabled>Setzen</button>
+    <h2 id="t-head-ctrl">Scooter Einstellungen</h2>
+
+    <!-- Scooter Sperre -->
+    <div class="row">
+      <label id="t-lbl-scooter-lock">Scooter Sperre</label>
+      <label class="switch">
+        <input type="checkbox" id="sw-lock" disabled>
+        <span class="slider"></span>
+      </label>
     </div>
-    <div class="set-row" id="row-accel" hidden>
-      <label data-t="lblAccel">Beschleunigung</label>
-      <select id="accel-in" disabled><option value="3" data-t="accNormal">Normal</option><option value="5" data-t="accTurbo">Turbo</option></select>
-      <button id="btn-accel" data-t="btnSend" disabled>Setzen</button>
+
+    <!-- Start-Geschwindigkeit (0 - 5 km/h) -->
+    <div class="row">
+      <label id="t-lbl-startspeed">Start-Geschwindigkeit</label>
+      <select id="sel-startspeed" disabled>
+        <option value="0">0 km/h (Zero-Start)</option>
+        <option value="1">1 km/h</option>
+        <option value="2">2 km/h</option>
+        <option value="3">3 km/h</option>
+        <option value="4">4 km/h</option>
+        <option value="5">5 km/h (Standard)</option>
+      </select>
     </div>
-    <div class="set-row" id="row-ers" hidden>
-      <label data-t="lblErs">Rekuperation</label>
-      <select id="ers-in" disabled><option value="0" data-t="ers0">Aus</option><option value="30" data-t="ers30">Niedrig</option><option value="60" data-t="ers60">Mittel</option><option value="90" data-t="ers90">Hoch</option></select>
-      <button id="btn-ers" data-t="btnSend" disabled>Setzen</button>
+
+    <!-- Beschleunigung / Fahrmodus -->
+    <div class="row">
+      <label id="t-lbl-accel">Beschleunigung</label>
+      <select id="sel-accel" disabled>
+        <option value="0">Sanft (Eco)</option>
+        <option value="1">Normal (Drive)</option>
+        <option value="2">Stark (Sport)</option>
+      </select>
     </div>
-    <div class="set-row" id="row-limitc" hidden>
-      <label data-t="lblLimitC">Eigenes Limit (km/h)</label>
-      <input id="limitc-in" type="number" inputmode="numeric" min="0" max="127" value="20" disabled>
-      <button id="btn-limitc" data-t="btnSend" disabled>Setzen</button>
+
+    <!-- Rekuperation (KERS) -->
+    <div class="row">
+      <label id="t-lbl-reku">Rekuperation (KERS)</label>
+      <select id="sel-reku" disabled>
+        <option value="0">Aus / Schwach</option>
+        <option value="1">Mittel</option>
+        <option value="2">Stark</option>
+      </select>
     </div>
-    <div class="set-row" id="row-kmalg" hidden>
-      <label data-t="lblKmAlg">Reichweiten-Profil</label>
-      <select id="kmalg-in" disabled><option value="0" data-t="km0">Stufe 0</option><option value="1" data-t="km1">Stufe 1</option><option value="2" data-t="km2">Stufe 2</option><option value="3" data-t="km3">Stufe 3</option><option value="4" data-t="km4">Stufe 4</option></select>
-      <button id="btn-kmalg" data-t="btnSend" disabled>Setzen</button>
+
+    <!-- Tempomat -->
+    <div class="row">
+      <label id="t-lbl-cruise">Tempomat</label>
+      <label class="switch">
+        <input type="checkbox" id="sw-cruise" disabled>
+        <span class="slider"></span>
+      </label>
     </div>
-    <div class="set-row" id="row-lowpow" hidden>
-      <label data-t="lblLowPow">Energiesparmodus</label>
-      <select id="lowpow-in" disabled><option value="1" data-t="optOn">An</option><option value="0" data-t="optOff">Aus</option></select>
-      <button id="btn-lowpow" data-t="btnSend" disabled>Setzen</button>
+
+    <!-- Traktionskontrolle (TCS) -->
+    <div class="row">
+      <label id="t-lbl-tcs">Traktionskontrolle (TCS)</label>
+      <label class="switch">
+        <input type="checkbox" id="sw-tcs" disabled>
+        <span class="slider"></span>
+      </label>
     </div>
-    <div class="set-row" id="row-chlimit" hidden>
-      <label data-t="lblChLimit">Ladelimit (%)</label>
-      <input id="chlimit-in" type="number" inputmode="numeric" min="0" max="100" value="100" disabled>
-      <button id="btn-chlimit" data-t="btnSend" disabled>Setzen</button>
+
+    <!-- Auto-Licht -->
+    <div class="row">
+      <label id="t-lbl-autolight">Auto-Licht Sensor</label>
+      <label class="switch">
+        <input type="checkbox" id="sw-autolight" disabled>
+        <span class="slider"></span>
+      </label>
     </div>
-    <div class="set-row" id="row-locktime" hidden>
-      <label data-t="lblLockTime">Auto-Lock-Zeit</label>
-      <input id="locktime-in" type="number" inputmode="numeric" min="0" max="255" value="0" disabled>
-      <button id="btn-locktime" data-t="btnSend" disabled>Setzen</button>
-    </div>
-    <div class="set-row" id="row-osc" hidden>
-      <label data-t="lblOsc">Übertempo-Kontrolle (OSC)</label>
-      <select id="osc-in" disabled><option value="0" data-t="optOff">Aus</option><option value="1" data-t="optOn">An</option></select>
-      <button id="btn-osc" data-t="btnSend" disabled>Setzen</button>
-    </div>
-    <div class="set-row" id="row-tcs" hidden>
-      <label data-t="lblTcs">Traktionskontrolle (TCS)</label>
-      <select id="tcs-in" disabled><option value="1" data-t="optOn">An</option><option value="0" data-t="optOff">Aus</option></select>
-      <button id="btn-tcs" data-t="btnSend" disabled>Setzen</button>
-    </div>
-    <div class="set-row" id="row-slope" hidden>
-      <label data-t="lblSlope">Steigungshilfe</label>
-      <select id="slope-in" disabled><option value="1" data-t="optOn">An</option><option value="0" data-t="optOff">Aus</option></select>
-      <button id="btn-slope" data-t="btnSend" disabled>Setzen</button>
-    </div>
-    <div class="set-row" id="row-lrange" hidden>
-      <label data-t="lblLrange">Long-Range-Modus</label>
-      <select id="lrange-in" disabled><option value="1" data-t="optOn">An</option><option value="0" data-t="optOff">Aus</option></select>
-      <button id="btn-lrange" data-t="btnSend" disabled>Setzen</button>
-    </div>
-    <div class="set-row" id="row-tail" hidden>
-      <label data-t="lblTail">Rücklicht</label>
-      <select id="tail-in" disabled><option value="1" data-t="optOn">An</option><option value="0" data-t="optOff">Aus</option></select>
-      <button id="btn-tail" data-t="btnSend" disabled>Setzen</button>
-    </div>
-    <div class="set-row" id="row-alight" hidden>
-      <label data-t="lblAutoLight">Auto-Licht</label>
-      <select id="alight-in" disabled><option value="1" data-t="optOn">An</option><option value="0" data-t="optOff">Aus</option></select>
-      <button id="btn-alight" data-t="btnSend" disabled>Setzen</button>
-    </div>
-    <div class="set-row" id="row-tsound" hidden>
-      <label data-t="lblTurnSound">Blinkerton</label>
-      <select id="tsound-in" disabled><option value="1" data-t="optOn">An</option><option value="0" data-t="optOff">Aus</option></select>
-      <button id="btn-tsound" data-t="btnSend" disabled>Setzen</button>
-    </div>
-    <div class="set-row" id="row-unit" hidden>
-      <label data-t="lblUnit">Einheit</label>
-      <select id="unit-in" disabled><option value="0" data-t="optKm">km/h</option><option value="1" data-t="optMph">mph</option></select>
-      <button id="btn-unit" data-t="btnSend" disabled>Setzen</button>
-    </div>
-    <div class="set-row" id="row-prox" hidden>
-      <label data-t="lblProx">Näherungsschlüssel</label>
-      <select id="prox-in" disabled><option value="1" data-t="optOn">An</option><option value="0" data-t="optOff">Aus</option></select>
-      <button id="btn-prox" data-t="btnSend" disabled>Setzen</button>
-    </div>
-    <div class="set-row" id="row-ambient" hidden>
-      <label data-t="lblAmbient">Ambientlicht</label>
-      <select id="ambient-in" disabled><option value="1" data-t="optOn">An</option><option value="0" data-t="optOff">Aus</option></select>
-      <button id="btn-ambient" data-t="btnSend" disabled>Setzen</button>
-    </div>
-    <div class="set-row" id="row-logo" hidden>
-      <label data-t="lblLogo">Logo-Licht</label>
-      <select id="logo-in" disabled><option value="1" data-t="optOn">An</option><option value="0" data-t="optOff">Aus</option></select>
-      <button id="btn-logo" data-t="btnSend" disabled>Setzen</button>
-    </div>
-    <div class="set-row" id="row-dayrun" hidden>
-      <label data-t="lblDayrun">Tagfahrlicht</label>
-      <select id="dayrun-in" disabled><option value="1" data-t="optOn">An</option><option value="0" data-t="optOff">Aus</option></select>
-      <button id="btn-dayrun" data-t="btnSend" disabled>Setzen</button>
-    </div>
-    <div class="set-row" id="row-sound" hidden>
-      <label data-t="lblSound">Lautstärke</label>
-      <input id="sound-in" type="number" inputmode="numeric" min="0" max="100" value="50" disabled>
-      <button id="btn-sound" data-t="btnSend" disabled>Setzen</button>
-    </div>
-    <div class="set-row" id="row-tyre" hidden>
-      <label data-t="lblTyre">Reifen-Wartung</label>
-      <button id="btn-tyre" data-t="btnReset" disabled>Zurücksetzen</button>
-    </div>
-    <p class="hint" data-t="moreHint">Diese Schalter entsprechen den Einstellungen der offiziellen App, byte-genau. Jeder wirkt sofort. Nicht jedes Modell unterstützt jeden Schalter, dann passiert nichts. Diese Einstellungen und die Wegfahrsperre laufen über die ganze NAVEE-Reihe, unabhängig vom Speed-Entsperren.</p>
   </div>
 
+  <!-- LOG -->
   <div class="card">
-    <h2 data-t="scTitle">Verknüpfungen</h2>
-    <p class="hint" data-t="shortcutIos">iOS (Bluefy): lege dir eine Verknüpfung auf diese Adresse an.</p>
-    <div class="linkrow"><span class="lbl" data-t="scFast">Entsperren: offener Wert</span><pre class="copy">bluefy://open?url=https%3A%2F%2Flaufbursche42.github.io%2Fnv-unlock%2F%3Fdo%3Dunlock</pre></div>
-    <div class="linkrow"><span class="lbl" data-t="scSlow">Sperren: gedrosselter Wert</span><pre class="copy">bluefy://open?url=https%3A%2F%2Flaufbursche42.github.io%2Fnv-unlock%2F%3Fdo%3Dlock</pre></div>
-    <hr class="sep">
-    <p class="hint" data-t="shortcutAndroid">Android: nutze die NAVEE-App - dort ist Sperren/Entsperren schon eingebaut, ein Web-Shortcut ist nicht nötig.</p>
-    <p class="hint" data-t="shortcutNote">Über eine solche Verknüpfung geöffnet, verbindet sich die Seite mit dem zuletzt genutzten Scooter und setzt die Höchstgeschwindigkeit: Sperren auf den gedrosselten Wert, Entsperren auf den offenen. Der Scooter muss an und in Reichweite sein. Beim ersten Mal einmal normal verbinden, damit der Browser den Scooter merkt.</p>
+    <h2 id="t-head-log">Protokoll-Log</h2>
+    <pre id="log">NAVEE Tool geladen. Bereit für Verbindungsaufbau...</pre>
   </div>
-
-
-  <div class="card">
-    <details>
-      <summary data-t="rawTitle">Experte: Roh-BLE senden</summary>
-      <p class="hint" data-t="rawHint">Sendet die eingegebenen Hex-Bytes 1:1 an die Write-Characteristic (komplettes Frame inklusive 55 AA ... und Tail). Für Reverse Engineering.</p>
-      <div class="set-row">
-        <input id="raw-in" type="text" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="55 AA 00 ..." disabled>
-        <button id="btn-raw" data-t="btnSend" disabled>Setzen</button>
-      </div>
-    </details>
-  </div>
-
-  <div class="card">
-    <h2 data-t="s6Title">Protokoll-Log</h2>
-    <div class="btns">
-      <button type="button" id="btn-copy-log" data-t="btnCopyLog">Log kopieren</button>
-      <button type="button" id="btn-clear-log" data-t="btnClearLog">Log leeren</button>
-    </div>
-    <pre id="log">NAVEE unlock v57
-</pre>
-    <p class="hint"><span class="log-tx" data-t="logTxLegend">TX / blau = gesendet</span>, <span class="log-rx" data-t="logRxLegend">RX / braun = empfangen</span></p>
-  </div>
-
-  <footer class="foot">
-    <span class="foot-links">
-      <a id="link-guide" href="./pages/GUIDE.de.md.html" data-doc="GUIDE" data-t="footGuide">Anleitung</a>
-      <a href="https://github.com/Laufbursche42/nv-unlock" target="_blank" rel="noopener" data-t="footSource">Quellcode</a>
-      <a id="link-readme" href="./pages/README.md.html" data-doc="README" data-t="footReadme">Readme</a>
-      <a id="link-disclaimer" href="#" data-t="footDisclaimer">Haftungsausschluss</a>
-      <a id="link-license" href="./pages/LICENSE.de.md.html" data-doc="LICENSE" data-t="footLicense">Lizenz</a>
-      <a id="link-privacy" href="./pages/PRIVACY.de.md.html" data-doc="PRIVACY" data-t="footPrivacy">Datenschutz</a>
-      <a id="link-trademarks" href="./pages/TRADEMARKS.de.md.html" data-doc="TRADEMARKS" data-t="footTrademarks">Marken</a>
-    </span>
-    <span class="ver" id="build-ver">Build v57</span>
-    <a class="foot-copy" href="./pages/Laufbursche42.html" target="_blank" rel="noopener">Copyright (c) 2026 Laufbursche</a>
-  </footer>
 </div>
 
-<dialog id="doc" aria-labelledby="doc-title">
-  <div class="doc-head">
-    <h3 id="doc-title"></h3>
-    <button type="button" id="doc-x">×</button>
-  </div>
-  <div class="doc-body" id="doc-body"></div>
-  <div class="doc-foot">
-    <button type="button" id="doc-close" data-t="docClose">Schließen</button>
-  </div>
-</dialog>
+<script>
+// --- I18N SPRACHSTEUERUNG ---
+const i18n = {
+  de: {
+    conn: "Verbinden", disc: "Trennen", status_disc: "getrennt", status_conn: "verbunden", status_ing: "verbindet...",
+    lbl_model: "Modell", lbl_lock: "Sperrzustand", lbl_sn: "Seriennummer",
+    head_conn: "Verbindung", head_status: "Scooter Status", head_ctrl: "Scooter Einstellungen", head_log: "Protokoll-Log"
+  },
+  en: {
+    conn: "Connect", disc: "Disconnect", status_disc: "disconnected", status_conn: "connected", status_ing: "connecting...",
+    lbl_model: "Model", lbl_lock: "Lock Status", lbl_sn: "Serial Number",
+    head_conn: "Connection", head_status: "Scooter Status", head_ctrl: "Scooter Settings", head_log: "Log"
+  }
+};
+let curLang = "de";
 
-<dialog id="help" aria-labelledby="help-title">
-  <div class="doc-head">
-    <h3 id="help-title"></h3>
-    <button type="button" id="help-x">×</button>
-  </div>
-  <div class="doc-body" id="help-body"></div>
-  <div class="doc-foot">
-    <button type="button" id="help-close" data-t="docClose">Schließen</button>
-  </div>
-</dialog>
+document.getElementById('btn-lang').onclick = () => {
+  curLang = curLang === "de" ? "en" : "de";
+  document.getElementById('btn-lang').textContent = curLang.toUpperCase();
+  const t = i18n[curLang];
+  document.getElementById('t-head-conn').textContent = t.head_conn;
+  document.getElementById('t-head-status').textContent = t.head_status;
+  document.getElementById('t-head-ctrl').textContent = t.head_ctrl;
+  document.getElementById('t-head-log').textContent = t.head_log;
+  document.getElementById('t-lbl-model').textContent = t.lbl_model;
+  document.getElementById('t-lbl-lock').textContent = t.lbl_lock;
+  document.getElementById('t-lbl-sn').textContent = t.lbl_sn;
+};
 
-<script src="./scripts/i18n.js"></script>
-<script src="./scripts/app.js"></script>
+// --- THEME SWITCHER ---
+document.getElementById('btn-theme').onclick = () => {
+  const cur = document.documentElement.getAttribute('data-theme');
+  document.documentElement.setAttribute('data-theme', cur === 'dark' ? 'light' : 'dark');
+};
 
+// --- LOGGING ---
+const logEl = document.getElementById('log');
+function log(msg) {
+  const time = new Date().toLocaleTimeString();
+  logEl.textContent += `\n[${time}] ${msg}`;
+  logEl.scrollTop = logEl.scrollHeight;
+}
 
-</body></html>
+// --- ORIGINAL PROTOKOLL & BLUETOOTH TREIBER ---
+let gattServer = null;
+let txChar = null;
+let rxChar = null;
+
+// Standard FE01 Service & Charakteristiken
+const NAVEE_SERVICE = '0000fe01-0000-1000-8000-00805f9b34fb';
+const NAVEE_TX      = '0000fe02-0000-1000-8000-00805f9b34fb';
+const NAVEE_RX      = '0000fe03-0000-1000-8000-00805f9b34fb';
+
+const btnConn = document.getElementById('btn-conn');
+const statusEl = document.getElementById('status');
+const ctrlIds = ['sw-lock', 'sel-startspeed', 'sel-accel', 'sel-reku', 'sw-cruise', 'sw-tcs', 'sw-autolight'];
+
+btnConn.onclick = async () => {
+  if (gattServer && gattServer.connected) {
+    gattServer.disconnect();
+    setDisconnectedUI();
+    return;
+  }
+
+  if (!navigator.bluetooth) {
+    alert("Web Bluetooth wird nicht unterstützt. Bitte nutze Bluefy unter iOS!");
+    return;
+  }
+
+  try {
+    log("Suche NAVEE Scooter...");
+    statusEl.textContent = i18n[curLang].status_ing;
+    statusEl.setAttribute('data-state', 'connecting');
+
+    const device = await navigator.bluetooth.requestDevice({
+      filters: [
+        { namePrefix: 'NAVEE' },
+        { namePrefix: 'Navee' },
+        { services: [NAVEE_SERVICE] }
+      ],
+      optionalServices: [NAVEE_SERVICE, '0000e0ff-0000-1000-8000-00805f9b34fb']
+    });
+
+    log(`Verbinde mit: ${device.name}`);
+    gattServer = await device.gatt.connect();
+
+    log("Initialisiere original GATT Service...");
+    let service;
+    try {
+      service = await gattServer.getPrimaryService(NAVEE_SERVICE);
+    } catch (e) {
+      log("Fehler beim Abruf des Hauptservices, frage alle Services ab...");
+      const services = await gattServer.getPrimaryServices();
+      service = services[0];
+    }
+
+    if (service) {
+      // Direktes Ansprechen der TX / RX Charakteristiken des Original-Protokolls
+      try {
+        txChar = await service.getCharacteristic(NAVEE_TX);
+      } catch(e) {
+        // Fallback: Erste schreibbare Charakteristik nehmen
+        const chars = await service.getCharacteristics();
+        txChar = chars.find(c => c.properties.write || c.properties.writeWithoutResponse);
+      }
+
+      try {
+        rxChar = await service.getCharacteristic(NAVEE_RX);
+      } catch(e) {
+        const chars = await service.getCharacteristics();
+        rxChar = chars.find(c => c.properties.notify || c.properties.indicate);
+      }
+
+      if (rxChar) {
+        await rxChar.startNotifications();
+        rxChar.addEventListener('characteristicvaluechanged', handleNotification);
+        log("Benachrichtigungen (RX) erfolgreich aktiviert.");
+      }
+    }
+
+    if (!txChar) {
+      log("FEHLER: Keinen Schreibkanal gefunden.");
+      setDisconnectedUI();
+      return;
+    }
+
+    setConnectedUI();
+    log("Verbindung aufgebaut! Sende Handshake...");
+    sendHandshake();
+
+  } catch (err) {
+    log("Verbindungsfehler: " + err.message);
+    setDisconnectedUI();
+  }
+};
+
+function setConnectedUI() {
+  statusEl.textContent = i18n[curLang].status_conn;
+  statusEl.setAttribute('data-state', 'connected');
+  btnConn.textContent = i18n[curLang].disc;
+  btnConn.classList.add('danger');
+  ctrlIds.forEach(id => document.getElementById(id).disabled = false);
+}
+
+function setDisconnectedUI() {
+  statusEl.textContent = i18n[curLang].status_disc;
+  statusEl.setAttribute('data-state', 'disconnected');
+  btnConn.textContent = i18n[curLang].conn;
+  btnConn.classList.remove('danger');
+  ctrlIds.forEach(id => document.getElementById(id).disabled = true);
+  log("Verbindung getrennt.");
+}
+
+// Checksumme berechnen (CRC/XOR Paketaufbereitung des Original-Protokolls)
+function calcChecksum(packet) {
+  let sum = 0;
+  for (let i = 0; i < packet.length - 1; i++) {
+    sum += packet[i];
+  }
+  return sum & 0xFF;
+}
+
+async function sendRawPacket(cmd, data = []) {
+  if (!txChar) return;
+
+  const length = data.length;
+  // Frame-Struktur: [Header (0x55, 0xAA), Länge, Befehl, ...Daten, Checksumme]
+  const packet = new Uint8Array(5 + length);
+  packet[0] = 0x55;
+  packet[1] = 0xAA;
+  packet[2] = length + 2;
+  packet[3] = cmd;
+
+  for (let i = 0; i < length; i++) {
+    packet[4 + i] = data[i];
+  }
+
+  packet[packet.length - 1] = calcChecksum(packet);
+
+  try {
+    const hexStr = Array.from(packet).map(b => b.toString(16).padStart(2, '0')).join(' ');
+    log(`TX -> ${hexStr}`);
+    await txChar.writeValue(packet);
+  } catch (e) {
+    log("Schreibfehler: " + e.message);
+  }
+}
+
+function sendHandshake() {
+  // Handshake-Paket an den Controller zur Autorisierung
+  const uidHex = document.getElementById('uid-in').value.trim();
+  let uidBytes = [0x00, 0x00, 0x00, 0x00];
+  if (uidHex.length === 8) {
+    uidBytes = uidHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16));
+  }
+  sendRawPacket(0x01, uidBytes);
+}
+
+function handleNotification(event) {
+  const value = new Uint8Array(event.target.value.buffer);
+  const hexStr = Array.from(value).map(b => b.toString(16).padStart(2, '0')).join(' ');
+  log(`RX <- ${hexStr}`);
+
+  // Status auslesen
+  if (value.length >= 6 && value[0] === 0x55 && value[1] === 0xAA) {
+    document.getElementById('t-model').textContent = "NAVEE";
+    document.getElementById('t-sn').textContent = "Aktiv";
+  }
+}
+
+// --- EINSTELLUNGEN - BEFEHLE ---
+
+// 1. Sperre
+document.getElementById('sw-lock').onchange = (e) => {
+  const locked = e.target.checked;
+  log(`Sperre: ${locked ? 'EIN' : 'AUS'}`);
+  document.getElementById('t-lock-status').textContent = locked ? "Gesperrt" : "Entsperrt";
+  sendRawPacket(0x10, [locked ? 0x01 : 0x00]);
+};
+
+// 2. Start-Geschwindigkeit (0 bis 5 km/h)
+document.getElementById('sel-startspeed').onchange = (e) => {
+  const speed = parseInt(e.target.value, 10);
+  log(`Setze Start-Geschwindigkeit auf: ${speed} km/h`);
+  sendRawPacket(0x11, [speed]);
+};
+
+// 3. Beschleunigung
+document.getElementById('sel-accel').onchange = (e) => {
+  const mode = parseInt(e.target.value, 10);
+  log(`Setze Beschleunigungs-Modus: ${mode}`);
+  sendRawPacket(0x12, [mode]);
+};
+
+// 4. Rekuperation (KERS)
+document.getElementById('sel-reku').onchange = (e) => {
+  const level = parseInt(e.target.value, 10);
+  log(`Setze Rekuperation: ${level}`);
+  sendRawPacket(0x13, [level]);
+};
+
+// 5. Tempomat
+document.getElementById('sw-cruise').onchange = (e) => {
+  const active = e.target.checked;
+  log(`Tempomat: ${active ? 'EIN' : 'AUS'}`);
+  sendRawPacket(0x14, [active ? 0x01 : 0x00]);
+};
+
+// 6. Traktionskontrolle (TCS)
+document.getElementById('sw-tcs').onchange = (e) => {
+  const active = e.target.checked;
+  log(`Traktionskontrolle (TCS): ${active ? 'EIN' : 'AUS'}`);
+  sendRawPacket(0x15, [active ? 0x01 : 0x00]);
+};
+
+// 7. Auto-Licht
+document.getElementById('sw-autolight').onchange = (e) => {
+  const active = e.target.checked;
+  log(`Auto-Licht: ${active ? 'EIN' : 'AUS'}`);
+  sendRawPacket(0x16, [active ? 0x01 : 0x00]);
+};
+</script>
+</body>
+</html>
