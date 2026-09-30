@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Laufbursche NAVEE Tool</title>
+<title>Bluetooth Terminal & Sniffer</title>
 <style>
   :root {
     --bg-color: #0d0f12;
@@ -29,416 +29,255 @@
   }
   * { box-sizing: border-box; }
   body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
     background-color: var(--bg-color);
     color: var(--text-color);
     margin: 0;
     padding: 16px;
   }
-  .wrap { max-width: 600px; margin: 0 auto; }
-  header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-  h1 { font-size: 1.3rem; margin: 0; color: var(--heading-color); }
+  .wrap { max-width: 700px; margin: 0 auto; }
+  header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  h1 { font-size: 1.2rem; margin: 0; color: var(--heading-color); }
   .status {
     font-size: 0.8rem; padding: 4px 10px; border-radius: 20px;
-    background: #333; color: #fff; font-weight: bold; margin-right: 8px;
+    background: #333; color: #fff; font-weight: bold;
   }
   .status[data-state="connected"] { background: #238636; }
   .status[data-state="connecting"] { background: #d29922; }
   .card {
     background: var(--card-bg);
     border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 16px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 14px;
   }
-  h2 { font-size: 1rem; margin-top: 0; margin-bottom: 12px; color: var(--heading-color); }
-  .hint { font-size: 0.85rem; color: var(--subtext); line-height: 1.4; margin-bottom: 12px; }
-  .row { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; justify-content: space-between; }
-  .row label { font-size: 0.95rem; font-weight: 500; }
-  input[type="password"], select {
-    padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color);
-    background: var(--bg-color); color: var(--text-color); font-size: 0.95rem; outline: none;
+  .row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+  input[type="text"] {
+    flex: 1; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color);
+    background: var(--bg-color); color: #39ff14; font-family: monospace; font-size: 0.9rem; outline: none;
   }
   button {
-    padding: 10px 16px; border-radius: 8px; border: none; font-weight: bold;
+    padding: 10px 14px; border-radius: 6px; border: none; font-weight: bold;
     cursor: pointer; background: var(--accent-color); color: white; transition: background 0.2s;
   }
   button:hover:not(:disabled) { background: var(--accent-hover); }
-  button.primary { width: 100%; padding: 12px; font-size: 1rem; }
   button.danger { background: var(--warn-color); }
   button:disabled { opacity: 0.4; cursor: not-allowed; }
-  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px; }
-  .tile { background: var(--bg-color); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; text-align: center; }
-  .tile b { display: block; font-size: 1.1rem; color: var(--heading-color); margin-bottom: 2px; }
-  .tile small { font-size: 0.75rem; color: var(--subtext); }
   
-  /* Toggle Switch Design */
-  .switch { position: relative; display: inline-block; width: 46px; height: 24px; }
-  .switch input { opacity: 0; width: 0; height: 0; }
-  .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #333; transition: .3s; border-radius: 24px; }
-  .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
-  input:checked + .slider { background-color: var(--accent-color); }
-  input:checked + .slider:before { transform: translateX(22px); }
-  input:disabled + .slider { opacity: 0.4; cursor: not-allowed; }
-
-  pre#log {
-    background: #000; color: #39ff14; padding: 12px; border-radius: 8px;
-    font-size: 0.75rem; max-height: 220px; overflow-y: auto; white-space: pre-wrap; font-family: monospace;
+  pre#console {
+    background: #000; color: #39ff14; padding: 12px; border-radius: 6px;
+    font-size: 0.8rem; height: 350px; overflow-y: auto; white-space: pre-wrap;
+    font-family: monospace; border: 1px solid var(--border-color); margin: 0;
   }
+  .rx-text { color: #00ffff; }
+  .tx-text { color: #ff00ff; }
+  .sys-text { color: #8b949e; }
+  .err-text { color: #ff4d4d; }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <h1>Laufbursche <span id="t-brand">NAVEE Tool</span></h1>
-    <div>
-      <span class="status" id="status" data-state="disconnected">getrennt</span>
-      <button type="button" id="btn-lang">DE</button>
-      <button type="button" id="btn-theme">☀/🌙</button>
-    </div>
+    <h1>BLE Terminal & Sniffer</h1>
+    <span class="status" id="status" data-state="disconnected">Getrennt</span>
   </header>
 
   <!-- VERBINDUNG -->
   <div class="card">
-    <h2 id="t-head-conn">Verbindung</h2>
-    <div class="row" style="justify-content: flex-start;">
-      <input id="uid-in" type="password" placeholder="Konto-userId (128-bit MD5)" style="width: 100%;">
+    <div class="row">
+      <button id="btn-conn" style="width: 100%;">Gerät suchen & verbinden</button>
     </div>
-    <p class="hint" id="t-hint-uid">Falls verlangt, gib hier den MD5-Hash deiner User-ID aus der Original-App ein.</p>
-    <button class="primary" id="btn-conn">Verbinden</button>
-  </div>
-
-  <!-- STATUS -->
-  <div class="card">
-    <h2 id="t-head-status">Scooter Status</h2>
-    <div class="grid">
-      <div class="tile"><b id="t-model">-</b><small id="t-lbl-model">Modell</small></div>
-      <div class="tile"><b id="t-lock-status">Entsperrt</b><small id="t-lbl-lock">Sperrzustand</small></div>
-      <div class="tile" style="grid-column: span 2;"><b id="t-sn">-</b><small id="t-lbl-sn">Seriennummer</small></div>
+    <div class="row">
+      <span class="sys-text" id="dev-info">Kein Gerät ausgewählt</span>
     </div>
   </div>
 
-  <!-- EINSTELLUNGEN -->
+  <!-- HEX SENDEN -->
   <div class="card">
-    <h2 id="t-head-ctrl">Scooter Einstellungen</h2>
-
-    <!-- Scooter Sperre -->
     <div class="row">
-      <label id="t-lbl-scooter-lock">Scooter Sperre</label>
-      <label class="switch">
-        <input type="checkbox" id="sw-lock" disabled>
-        <span class="slider"></span>
-      </label>
-    </div>
-
-    <!-- Start-Geschwindigkeit (0 - 5 km/h) -->
-    <div class="row">
-      <label id="t-lbl-startspeed">Start-Geschwindigkeit</label>
-      <select id="sel-startspeed" disabled>
-        <option value="0">0 km/h (Zero-Start)</option>
-        <option value="1">1 km/h</option>
-        <option value="2">2 km/h</option>
-        <option value="3">3 km/h</option>
-        <option value="4">4 km/h</option>
-        <option value="5">5 km/h (Standard)</option>
-      </select>
-    </div>
-
-    <!-- Beschleunigung / Fahrmodus -->
-    <div class="row">
-      <label id="t-lbl-accel">Beschleunigung</label>
-      <select id="sel-accel" disabled>
-        <option value="0">Sanft (Eco)</option>
-        <option value="1">Normal (Drive)</option>
-        <option value="2">Stark (Sport)</option>
-      </select>
-    </div>
-
-    <!-- Rekuperation (KERS) -->
-    <div class="row">
-      <label id="t-lbl-reku">Rekuperation (KERS)</label>
-      <select id="sel-reku" disabled>
-        <option value="0">Aus / Schwach</option>
-        <option value="1">Mittel</option>
-        <option value="2">Stark</option>
-      </select>
-    </div>
-
-    <!-- Tempomat -->
-    <div class="row">
-      <label id="t-lbl-cruise">Tempomat</label>
-      <label class="switch">
-        <input type="checkbox" id="sw-cruise" disabled>
-        <span class="slider"></span>
-      </label>
-    </div>
-
-    <!-- Traktionskontrolle (TCS) -->
-    <div class="row">
-      <label id="t-lbl-tcs">Traktionskontrolle (TCS)</label>
-      <label class="switch">
-        <input type="checkbox" id="sw-tcs" disabled>
-        <span class="slider"></span>
-      </label>
-    </div>
-
-    <!-- Auto-Licht -->
-    <div class="row">
-      <label id="t-lbl-autolight">Auto-Licht Sensor</label>
-      <label class="switch">
-        <input type="checkbox" id="sw-autolight" disabled>
-        <span class="slider"></span>
-      </label>
+      <input type="text" id="hex-input" placeholder="Hex eingeben (z.B. 55 AA 03 01 00 04)" disabled>
+      <button id="btn-send" disabled>Senden</button>
     </div>
   </div>
 
-  <!-- LOG -->
-  <div class="card">
-    <h2 id="t-head-log">Protokoll-Log</h2>
-    <pre id="log">NAVEE Tool geladen. Bereit für Verbindungsaufbau...</pre>
+  <!-- TERMINAL -->
+  <div class="card" style="padding: 8px;">
+    <div class="row" style="justify-content: space-between; padding: 0 4px 6px 4px;">
+      <span style="font-size: 0.85rem; font-weight: bold;">Live Log</span>
+      <button id="btn-clear" style="padding: 4px 8px; font-size: 0.75rem; background: #333;">Clear</button>
+    </div>
+    <pre id="console">[SYS] Bereit. Klicke auf 'Gerät suchen & verbinden'...</pre>
   </div>
 </div>
 
 <script>
-// --- I18N SPRACHSTEUERUNG ---
-const i18n = {
-  de: {
-    conn: "Verbinden", disc: "Trennen", status_disc: "getrennt", status_conn: "verbunden", status_ing: "verbindet...",
-    lbl_model: "Modell", lbl_lock: "Sperrzustand", lbl_sn: "Seriennummer",
-    head_conn: "Verbindung", head_status: "Scooter Status", head_ctrl: "Scooter Einstellungen", head_log: "Protokoll-Log"
-  },
-  en: {
-    conn: "Connect", disc: "Disconnect", status_disc: "disconnected", status_conn: "connected", status_ing: "connecting...",
-    lbl_model: "Model", lbl_lock: "Lock Status", lbl_sn: "Serial Number",
-    head_conn: "Connection", head_status: "Scooter Status", head_ctrl: "Scooter Settings", head_log: "Log"
-  }
-};
-let curLang = "de";
-
-document.getElementById('btn-lang').onclick = () => {
-  curLang = curLang === "de" ? "en" : "de";
-  document.getElementById('btn-lang').textContent = curLang.toUpperCase();
-  const t = i18n[curLang];
-  document.getElementById('t-head-conn').textContent = t.head_conn;
-  document.getElementById('t-head-status').textContent = t.head_status;
-  document.getElementById('t-head-ctrl').textContent = t.head_ctrl;
-  document.getElementById('t-head-log').textContent = t.head_log;
-  document.getElementById('t-lbl-model').textContent = t.lbl_model;
-  document.getElementById('t-lbl-lock').textContent = t.lbl_lock;
-  document.getElementById('t-lbl-sn').textContent = t.lbl_sn;
-};
-
-// --- THEME SWITCHER ---
-document.getElementById('btn-theme').onclick = () => {
-  const cur = document.documentElement.getAttribute('data-theme');
-  document.documentElement.setAttribute('data-theme', cur === 'dark' ? 'light' : 'dark');
-};
-
-// --- LOGGING ---
-const logEl = document.getElementById('log');
-function log(msg) {
-  const time = new Date().toLocaleTimeString();
-  logEl.textContent += `\n[${time}] ${msg}`;
-  logEl.scrollTop = logEl.scrollHeight;
-}
-
-// --- ORIGINAL PROTOKOLL & BLUETOOTH TREIBER ---
 let gattServer = null;
 let txChar = null;
-let rxChar = null;
+let rxChars = [];
 
-const NAVEE_SERVICE = '0000fe01-0000-1000-8000-00805f9b34fb';
 const btnConn = document.getElementById('btn-conn');
+const btnSend = document.getElementById('btn-send');
+const btnClear = document.getElementById('btn-clear');
+const hexInput = document.getElementById('hex-input');
 const statusEl = document.getElementById('status');
-const ctrlIds = ['sw-lock', 'sel-startspeed', 'sel-accel', 'sel-reku', 'sw-cruise', 'sw-tcs', 'sw-autolight'];
+const devInfo = document.getElementById('dev-info');
+const consoleEl = document.getElementById('console');
+
+function log(msg, type = 'sys') {
+  const time = new Date().toLocaleTimeString();
+  const span = document.createElement('span');
+  span.className = `${type}-text`;
+  span.textContent = `\n[${time}] ${msg}`;
+  consoleEl.appendChild(span);
+  consoleEl.scrollTop = consoleEl.scrollHeight;
+}
+
+btnClear.onclick = () => { consoleEl.textContent = '[SYS] Log geleert.'; };
 
 btnConn.onclick = async () => {
   if (gattServer && gattServer.connected) {
     gattServer.disconnect();
-    setDisconnectedUI();
+    disconnectUI();
     return;
   }
 
   if (!navigator.bluetooth) {
-    alert("Web Bluetooth wird nicht unterstützt. Bitte nutze Bluefy unter iOS!");
+    alert("Web Bluetooth wird nicht unterstützt. Bitte benutze Bluefy (iOS) oder Chrome (Android/PC)!");
     return;
   }
 
   try {
-    log("Suche alle verfügbaren Bluetooth-Geräte...");
-    statusEl.textContent = i18n[curLang].status_ing;
+    log("Scanne nach allen Bluetooth LE Geräten...", "sys");
+    statusEl.textContent = "Suche...";
     statusEl.setAttribute('data-state', 'connecting');
 
-    // Filter entfernt -> Öffnet Auswahlliste für JEDES Bluetooth-Gerät in der Nähe
+    // Scannet absolut jedes Bluetooth-Gerät ohne Filter
     const device = await navigator.bluetooth.requestDevice({
       acceptAllDevices: true,
       optionalServices: [
-        NAVEE_SERVICE,
+        '0000fe01-0000-1000-8000-00805f9b34fb',
         '0000e0ff-0000-1000-8000-00805f9b34fb',
+        '00001800-0000-1000-8000-00805f9b34fb',
         '0000180a-0000-1000-8000-00805f9b34fb'
       ]
     });
 
-    log(`Verbinde mit: ${device.name || 'Unbenanntes Gerät'}`);
-    gattServer = await device.gatt.connect();
+    devInfo.textContent = `Gerät: ${device.name || 'Unbenannt'} (${device.id})`;
+    log(`Verbinde mit: ${device.name || 'Unbenannt'}...`, "sys");
 
-    log("Suche GATT Services...");
+    gattServer = await device.gatt.connect();
+    log("GATT Server verbunden! Rufe Primary Services ab...", "sys");
+
     const services = await gattServer.getPrimaryServices();
-    log(`Gefundene Services: ${services.length}`);
+    log(`Anzahl gefundener Services: ${services.length}`, "sys");
 
     txChar = null;
-    rxChar = null;
+    rxChars = [];
 
     for (const service of services) {
+      log(`Service: ${service.uuid}`, "sys");
       try {
-        const chars = await service.getCharacteristics();
-        for (const c of chars) {
-          if (c.properties.write || c.properties.writeWithoutResponse) {
+        const characteristics = await service.getCharacteristics();
+        for (const c of characteristics) {
+          const props = [];
+          if (c.properties.write) props.push('WRITE');
+          if (c.properties.writeWithoutResponse) props.push('WRITE_NO_RESP');
+          if (c.properties.notify) props.push('NOTIFY');
+          if (c.properties.indicate) props.push('INDICATE');
+          if (c.properties.read) props.push('READ');
+
+          log(` -> Char: ${c.uuid} [${props.join(', ')}]`, "sys");
+
+          // Schreibkanal zuweisen
+          if ((c.properties.write || c.properties.writeWithoutResponse) && !txChar) {
             txChar = c;
-            log(`TX-Kanal gefunden: ${c.uuid}`);
+            log(`    [+] Als TX (Sende-Kanal) ausgewählt`, "tx");
           }
+
+          // Lese/Notify-Kanäle aktivieren
           if (c.properties.notify || c.properties.indicate) {
-            rxChar = c;
             try {
-              await rxChar.startNotifications();
-              rxChar.addEventListener('characteristicvaluechanged', handleNotification);
-              log(`RX-Kanal aktiv: ${c.uuid}`);
-            } catch(e) {}
+              await c.startNotifications();
+              c.addEventListener('characteristicvaluechanged', handleRX);
+              rxChars.push(c);
+              log(`    [+] RX (Listen-Kanal) aktiv`, "rx");
+            } catch (e) {
+              log(`    [-] Notify Fehler: ${e.message}`, "err");
+            }
           }
         }
-      } catch (e) {}
+      } catch (e) {
+        log(`Fehler beim Abrufen der Characteristics: ${e.message}`, "err");
+      }
     }
 
     if (!txChar) {
-      log("FEHLER: Keinen Schreibkanal (TX) gefunden.");
-      setDisconnectedUI();
-      return;
+      log("WARNUNG: Keinen schreibbaren TX-Kanal gefunden!", "err");
     }
 
-    setConnectedUI();
-    log("Verbindung aufgebaut! Sende Handshake...");
-    sendHandshake();
+    connectUI();
 
   } catch (err) {
-    log("Verbindungsfehler: " + err.message);
-    setDisconnectedUI();
+    log(`Verbindungsfehler: ${err.message}`, "err");
+    disconnectUI();
   }
 };
 
-function setConnectedUI() {
-  statusEl.textContent = i18n[curLang].status_conn;
-  statusEl.setAttribute('data-state', 'connected');
-  btnConn.textContent = i18n[curLang].disc;
-  btnConn.classList.add('danger');
-  ctrlIds.forEach(id => document.getElementById(id).disabled = false);
+function handleRX(event) {
+  const buf = new Uint8Array(event.target.value.buffer);
+  const hex = Array.from(buf).map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ');
+  log(`RX <- ${hex}`, "rx");
 }
 
-function setDisconnectedUI() {
-  statusEl.textContent = i18n[curLang].status_disc;
-  statusEl.setAttribute('data-state', 'disconnected');
-  btnConn.textContent = i18n[curLang].conn;
-  btnConn.classList.remove('danger');
-  ctrlIds.forEach(id => document.getElementById(id).disabled = true);
-  log("Verbindung getrennt.");
-}
+btnSend.onclick = sendHex;
+hexInput.onkeydown = (e) => { if (e.key === 'Enter') sendHex(); };
 
-function calcChecksum(packet) {
-  let sum = 0;
-  for (let i = 0; i < packet.length - 1; i++) {
-    sum += packet[i];
-  }
-  return sum & 0xFF;
-}
-
-async function sendRawPacket(cmd, data = []) {
-  if (!txChar) return;
-
-  const length = data.length;
-  const packet = new Uint8Array(5 + length);
-  packet[0] = 0x55;
-  packet[1] = 0xAA;
-  packet[2] = length + 2;
-  packet[3] = cmd;
-
-  for (let i = 0; i < length; i++) {
-    packet[4 + i] = data[i];
+async function sendHex() {
+  if (!txChar) {
+    log("Fehler: Kein TX-Schreibkanal vorhanden.", "err");
+    return;
   }
 
-  packet[packet.length - 1] = calcChecksum(packet);
+  const rawInput = hexInput.value.replace(/[^0-9a-fA-F]/g, '');
+  if (rawInput.length === 0 || rawInput.length % 2 !== 0) {
+    log("Ungültiger Hex-Code! Bitte zweistellige Hex-Werte eingeben (z. B. 55 AA 01).", "err");
+    return;
+  }
+
+  const bytes = new Uint8Array(rawInput.match(/.{1,2}/g).map(b => parseInt(b, 16)));
+  const hexFormatted = Array.from(bytes).map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ');
 
   try {
-    const hexStr = Array.from(packet).map(b => b.toString(16).padStart(2, '0')).join(' ');
-    log(`TX -> ${hexStr}`);
-    await txChar.writeValue(packet);
-  } catch (e) {
-    log("Schreibfehler: " + e.message);
+    log(`TX -> ${hexFormatted}`, "tx");
+    if (txChar.properties.writeWithoutResponse) {
+      await txChar.writeValueWithoutResponse(bytes);
+    } else {
+      await txChar.writeValue(bytes);
+    }
+  } catch (err) {
+    log(`Schreibfehler: ${err.message}`, "err");
   }
 }
 
-function sendHandshake() {
-  const uidHex = document.getElementById('uid-in').value.trim();
-  let uidBytes = [0x00, 0x00, 0x00, 0x00];
-  if (uidHex.length === 8) {
-    uidBytes = uidHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16));
-  }
-  sendRawPacket(0x01, uidBytes);
+function connectUI() {
+  statusEl.textContent = "Verbunden";
+  statusEl.setAttribute('data-state', 'connected');
+  btnConn.textContent = "Trennen";
+  btnConn.classList.add('danger');
+  btnSend.disabled = false;
+  hexInput.disabled = false;
 }
 
-function handleNotification(event) {
-  const value = new Uint8Array(event.target.value.buffer);
-  const hexStr = Array.from(value).map(b => b.toString(16).padStart(2, '0')).join(' ');
-  log(`RX <- ${hexStr}`);
-
-  if (value.length >= 6 && value[0] === 0x55 && value[1] === 0xAA) {
-    document.getElementById('t-model').textContent = "NAVEE";
-    document.getElementById('t-sn').textContent = "Aktiv";
-  }
+function disconnectUI() {
+  statusEl.textContent = "Getrennt";
+  statusEl.setAttribute('data-state', 'disconnected');
+  btnConn.textContent = "Gerät suchen & verbinden";
+  btnConn.classList.remove('danger');
+  btnSend.disabled = true;
+  hexInput.disabled = true;
+  devInfo.textContent = "Kein Gerät ausgewählt";
+  log("Verbindung getrennt.", "sys");
 }
-
-// --- EINSTELLUNGEN - BEFEHLE ---
-document.getElementById('sw-lock').onchange = (e) => {
-  const locked = e.target.checked;
-  log(`Sperre: ${locked ? 'EIN' : 'AUS'}`);
-  document.getElementById('t-lock-status').textContent = locked ? "Gesperrt" : "Entsperrt";
-  sendRawPacket(0x10, [locked ? 0x01 : 0x00]);
-};
-
-document.getElementById('sel-startspeed').onchange = (e) => {
-  const speed = parseInt(e.target.value, 10);
-  log(`Setze Start-Geschwindigkeit auf: ${speed} km/h`);
-  sendRawPacket(0x11, [speed]);
-};
-
-document.getElementById('sel-accel').onchange = (e) => {
-  const mode = parseInt(e.target.value, 10);
-  log(`Setze Beschleunigungs-Modus: ${mode}`);
-  sendRawPacket(0x12, [mode]);
-};
-
-document.getElementById('sel-reku').onchange = (e) => {
-  const level = parseInt(e.target.value, 10);
-  log(`Setze Rekuperation: ${level}`);
-  sendRawPacket(0x13, [level]);
-};
-
-document.getElementById('sw-cruise').onchange = (e) => {
-  const active = e.target.checked;
-  log(`Tempomat: ${active ? 'EIN' : 'AUS'}`);
-  sendRawPacket(0x14, [active ? 0x01 : 0x00]);
-};
-
-document.getElementById('sw-tcs').onchange = (e) => {
-  const active = e.target.checked;
-  log(`Traktionskontrolle (TCS): ${active ? 'EIN' : 'AUS'}`);
-  sendRawPacket(0x15, [active ? 0x01 : 0x00]);
-};
-
-document.getElementById('sw-autolight').onchange = (e) => {
-  const active = e.target.checked;
-  log(`Auto-Licht: ${active ? 'EIN' : 'AUS'}`);
-  sendRawPacket(0x16, [active ? 0x01 : 0x00]);
-};
 </script>
 </body>
 </html>
