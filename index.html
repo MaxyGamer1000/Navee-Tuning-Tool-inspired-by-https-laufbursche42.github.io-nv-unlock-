@@ -248,11 +248,7 @@ let gattServer = null;
 let txChar = null;
 let rxChar = null;
 
-// Standard FE01 Service & Charakteristiken
 const NAVEE_SERVICE = '0000fe01-0000-1000-8000-00805f9b34fb';
-const NAVEE_TX      = '0000fe02-0000-1000-8000-00805f9b34fb';
-const NAVEE_RX      = '0000fe03-0000-1000-8000-00805f9b34fb';
-
 const btnConn = document.getElementById('btn-conn');
 const statusEl = document.getElementById('status');
 const ctrlIds = ['sw-lock', 'sel-startspeed', 'sel-accel', 'sel-reku', 'sw-cruise', 'sw-tcs', 'sw-autolight'];
@@ -270,58 +266,52 @@ btnConn.onclick = async () => {
   }
 
   try {
-    log("Suche NAVEE Scooter...");
+    log("Suche alle verfügbaren Bluetooth-Geräte...");
     statusEl.textContent = i18n[curLang].status_ing;
     statusEl.setAttribute('data-state', 'connecting');
 
+    // Filter entfernt -> Öffnet Auswahlliste für JEDES Bluetooth-Gerät in der Nähe
     const device = await navigator.bluetooth.requestDevice({
-      filters: [
-        { namePrefix: 'NAVEE' },
-        { namePrefix: 'Navee' },
-        { services: [NAVEE_SERVICE] }
-      ],
-      optionalServices: [NAVEE_SERVICE, '0000e0ff-0000-1000-8000-00805f9b34fb']
+      acceptAllDevices: true,
+      optionalServices: [
+        NAVEE_SERVICE,
+        '0000e0ff-0000-1000-8000-00805f9b34fb',
+        '0000180a-0000-1000-8000-00805f9b34fb'
+      ]
     });
 
-    log(`Verbinde mit: ${device.name}`);
+    log(`Verbinde mit: ${device.name || 'Unbenanntes Gerät'}`);
     gattServer = await device.gatt.connect();
 
-    log("Initialisiere original GATT Service...");
-    let service;
-    try {
-      service = await gattServer.getPrimaryService(NAVEE_SERVICE);
-    } catch (e) {
-      log("Fehler beim Abruf des Hauptservices, frage alle Services ab...");
-      const services = await gattServer.getPrimaryServices();
-      service = services[0];
-    }
+    log("Suche GATT Services...");
+    const services = await gattServer.getPrimaryServices();
+    log(`Gefundene Services: ${services.length}`);
 
-    if (service) {
-      // Direktes Ansprechen der TX / RX Charakteristiken des Original-Protokolls
+    txChar = null;
+    rxChar = null;
+
+    for (const service of services) {
       try {
-        txChar = await service.getCharacteristic(NAVEE_TX);
-      } catch(e) {
-        // Fallback: Erste schreibbare Charakteristik nehmen
         const chars = await service.getCharacteristics();
-        txChar = chars.find(c => c.properties.write || c.properties.writeWithoutResponse);
-      }
-
-      try {
-        rxChar = await service.getCharacteristic(NAVEE_RX);
-      } catch(e) {
-        const chars = await service.getCharacteristics();
-        rxChar = chars.find(c => c.properties.notify || c.properties.indicate);
-      }
-
-      if (rxChar) {
-        await rxChar.startNotifications();
-        rxChar.addEventListener('characteristicvaluechanged', handleNotification);
-        log("Benachrichtigungen (RX) erfolgreich aktiviert.");
-      }
+        for (const c of chars) {
+          if (c.properties.write || c.properties.writeWithoutResponse) {
+            txChar = c;
+            log(`TX-Kanal gefunden: ${c.uuid}`);
+          }
+          if (c.properties.notify || c.properties.indicate) {
+            rxChar = c;
+            try {
+              await rxChar.startNotifications();
+              rxChar.addEventListener('characteristicvaluechanged', handleNotification);
+              log(`RX-Kanal aktiv: ${c.uuid}`);
+            } catch(e) {}
+          }
+        }
+      } catch (e) {}
     }
 
     if (!txChar) {
-      log("FEHLER: Keinen Schreibkanal gefunden.");
+      log("FEHLER: Keinen Schreibkanal (TX) gefunden.");
       setDisconnectedUI();
       return;
     }
@@ -353,7 +343,6 @@ function setDisconnectedUI() {
   log("Verbindung getrennt.");
 }
 
-// Checksumme berechnen (CRC/XOR Paketaufbereitung des Original-Protokolls)
 function calcChecksum(packet) {
   let sum = 0;
   for (let i = 0; i < packet.length - 1; i++) {
@@ -366,7 +355,6 @@ async function sendRawPacket(cmd, data = []) {
   if (!txChar) return;
 
   const length = data.length;
-  // Frame-Struktur: [Header (0x55, 0xAA), Länge, Befehl, ...Daten, Checksumme]
   const packet = new Uint8Array(5 + length);
   packet[0] = 0x55;
   packet[1] = 0xAA;
@@ -389,7 +377,6 @@ async function sendRawPacket(cmd, data = []) {
 }
 
 function sendHandshake() {
-  // Handshake-Paket an den Controller zur Autorisierung
   const uidHex = document.getElementById('uid-in').value.trim();
   let uidBytes = [0x00, 0x00, 0x00, 0x00];
   if (uidHex.length === 8) {
@@ -403,7 +390,6 @@ function handleNotification(event) {
   const hexStr = Array.from(value).map(b => b.toString(16).padStart(2, '0')).join(' ');
   log(`RX <- ${hexStr}`);
 
-  // Status auslesen
   if (value.length >= 6 && value[0] === 0x55 && value[1] === 0xAA) {
     document.getElementById('t-model').textContent = "NAVEE";
     document.getElementById('t-sn').textContent = "Aktiv";
@@ -411,8 +397,6 @@ function handleNotification(event) {
 }
 
 // --- EINSTELLUNGEN - BEFEHLE ---
-
-// 1. Sperre
 document.getElementById('sw-lock').onchange = (e) => {
   const locked = e.target.checked;
   log(`Sperre: ${locked ? 'EIN' : 'AUS'}`);
@@ -420,42 +404,36 @@ document.getElementById('sw-lock').onchange = (e) => {
   sendRawPacket(0x10, [locked ? 0x01 : 0x00]);
 };
 
-// 2. Start-Geschwindigkeit (0 bis 5 km/h)
 document.getElementById('sel-startspeed').onchange = (e) => {
   const speed = parseInt(e.target.value, 10);
   log(`Setze Start-Geschwindigkeit auf: ${speed} km/h`);
   sendRawPacket(0x11, [speed]);
 };
 
-// 3. Beschleunigung
 document.getElementById('sel-accel').onchange = (e) => {
   const mode = parseInt(e.target.value, 10);
   log(`Setze Beschleunigungs-Modus: ${mode}`);
   sendRawPacket(0x12, [mode]);
 };
 
-// 4. Rekuperation (KERS)
 document.getElementById('sel-reku').onchange = (e) => {
   const level = parseInt(e.target.value, 10);
   log(`Setze Rekuperation: ${level}`);
   sendRawPacket(0x13, [level]);
 };
 
-// 5. Tempomat
 document.getElementById('sw-cruise').onchange = (e) => {
   const active = e.target.checked;
   log(`Tempomat: ${active ? 'EIN' : 'AUS'}`);
   sendRawPacket(0x14, [active ? 0x01 : 0x00]);
 };
 
-// 6. Traktionskontrolle (TCS)
 document.getElementById('sw-tcs').onchange = (e) => {
   const active = e.target.checked;
   log(`Traktionskontrolle (TCS): ${active ? 'EIN' : 'AUS'}`);
   sendRawPacket(0x15, [active ? 0x01 : 0x00]);
 };
 
-// 7. Auto-Licht
 document.getElementById('sw-autolight').onchange = (e) => {
   const active = e.target.checked;
   log(`Auto-Licht: ${active ? 'EIN' : 'AUS'}`);
