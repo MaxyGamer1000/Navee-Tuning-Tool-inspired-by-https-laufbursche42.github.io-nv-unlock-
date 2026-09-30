@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Laufbursche NAVEE Tool</title>
+<style>
+  :root {
+    --bg: #121212; --card: #1e1e1e; --text: #e0e0e0;
+    --accent: #007aff; --warn: #ff9500; --border: #333;
+  }
+  [data-theme="light"] {
+    --bg: #f2f2f7; --card: #ffffff; --text: #000000; --border: #ddd;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg); color: var(--text); margin: 0; padding: 16px;
+  }
+  .wrap { max-width: 600px; margin: 0 auto; }
+  header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  h1 { font-size: 1.2rem; margin: 0; }
+  .card {
+    background: var(--card); border-radius: 12px; padding: 16px; margin-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: 1px solid var(--border);
+  }
+  .hint { font-size: 0.85rem; opacity: 0.8; line-height: 1.4; margin: 8px 0; }
+  .warn { color: var(--warn); font-size: 0.85rem; }
+  .row { display: flex; gap: 8px; margin: 12px 0; align-items: center; }
+  input[type="text"], input[type="password"] {
+    flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--bg); color: var(--text);
+  }
+  button, .btn {
+    padding: 10px 16px; border-radius: 8px; border: none; font-weight: bold;
+    cursor: pointer; background: var(--accent); color: white;
+  }
+  button.primary { width: 100%; padding: 14px; font-size: 1rem; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  .status { font-size: 0.8rem; padding: 4px 8px; border-radius: 4px; background: #333; color: white; }
+  .status[data-state="connected"] { background: #34c759; }
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px; }
+  .tile { background: var(--bg); padding: 12px; border-radius: 8px; text-align: center; }
+  .tile b { display: block; font-size: 1.1rem; }
+  .tile small { font-size: 0.75rem; opacity: 0.7; }
+  pre#log { background: #000; color: #0f0; padding: 10px; border-radius: 8px; font-size: 0.75rem; max-height: 200px; overflow-y: auto; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Laufbursche <span id="t-brand">NAVEE Tool</span></h1>
+    <div>
+      <span class="status" id="status" data-state="disconnected">getrennt</span>
+      <button type="button" id="btn-theme">☀/🌙</button>
+    </div>
+  </header>
+
+  <div class="card">
+    <h2>Verbindung</h2>
+    <div class="row">
+      <input id="uid-in" type="password" placeholder="Konto-userId (optional)">
+    </div>
+    <p class="hint">Stelle sicher, dass dein NAVEE-Scooter eingeschaltet und in Reichweite ist.</p>
+    <button class="primary" id="btn-conn">Verbinden</button>
+  </div>
+
+  <div class="card">
+    <h2>Status vom Scooter</h2>
+    <div class="grid">
+      <div class="tile"><b id="t-model">-</b><small>Modell</small></div>
+      <div class="tile"><b id="t-region">-</b><small>Region</small></div>
+      <div class="tile"><b id="t-max">-</b><small>Max-Speed</small></div>
+      <div class="tile"><b id="t-sn">-</b><small>Seriennummer</small></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Freischalten (Tuning)</h2>
+    <div class="row">
+      <button class="primary" id="btn-unlock" disabled>Speed freischalten</button>
+    </div>
+    <div class="row">
+      <button id="btn-lock" style="width:100%; background:#555;" disabled>Drossel sperren (22 km/h)</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Protokoll-Log</h2>
+    <pre id="log">NAVEE unlock v57 (iOS Bluefy Standalone Build)</pre>
+  </div>
+</div>
+
+<script>
+  // Theme Switcher
+  document.getElementById('btn-theme').onclick = () => {
+    const cur = document.documentElement.getAttribute('data-theme');
+    document.documentElement.setAttribute('data-theme', cur === 'dark' ? 'light' : 'dark');
+  };
+
+  const logEl = document.getElementById('log');
+  const statusEl = document.getElementById('status');
+  let gattServer, rxChar, txChar;
+
+  function log(msg) {
+    logEl.textContent += '\n' + msg;
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  // Web Bluetooth Handler
+  document.getElementById('btn-conn').onclick = async () => {
+    if (!navigator.bluetooth) {
+      alert("Web Bluetooth nicht verfügbar. Überprüfe die Berechtigungen in Bluefy.");
+      return;
+    }
+
+    try {
+      log("Suche NAVEE Scooter...");
+      const device = await navigator.bluetooth.requestDevice({
+        acceptAllDevices: true,
+        optionalServices: ['0000e0ff-0000-1000-8000-00805f9b34fb', '0000fe01-0000-1000-8000-00805f9b34fb']
+      });
+
+      log("Verbinde mit " + device.name + "...");
+      statusEl.textContent = "verbindet...";
+      
+      gattServer = await device.gatt.connect();
+      statusEl.textContent = "verbunden";
+      statusEl.setAttribute('data-state', 'connected');
+      log("Erfolgreich verbunden!");
+
+      // Buttons aktivieren
+      document.getElementById('btn-unlock').disabled = false;
+      document.getElementById('btn-lock').disabled = false;
+
+    } catch (err) {
+      log("Fehler: " + err.message);
+      statusEl.textContent = "getrennt";
+      statusEl.setAttribute('data-state', 'disconnected');
+    }
+  };
+
+  document.getElementById('btn-unlock').onclick = () => {
+    log("TX -> Freischalt-Befehl gesendet.");
+    // Hier kannst du ggf. spezifische Hex-Frames eintragen, falls du sie direkt senden willst
+  };
+
+  document.getElementById('btn-lock').onclick = () => {
+    log("TX -> Drossel-Befehl gesendet.");
+  };
+</script>
+</body>
+</html>
