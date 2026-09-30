@@ -6,43 +6,86 @@
 <title>Laufbursche NAVEE Tool</title>
 <style>
   :root {
-    --bg: #121212; --card: #1e1e1e; --text: #e0e0e0;
-    --accent: #007aff; --warn: #ff9500; --border: #333;
+    --bg-color: #0d0f12;
+    --card-bg: #161b22;
+    --border-color: #30363d;
+    --text-color: #c9d1d9;
+    --heading-color: #f0f6fc;
+    --accent-color: #238636;
+    --accent-hover: #2ea043;
+    --warn-color: #da3633;
+    --subtext: #8b949e;
   }
   [data-theme="light"] {
-    --bg: #f2f2f7; --card: #ffffff; --text: #000000; --border: #ddd;
+    --bg-color: #f6f8fa;
+    --card-bg: #ffffff;
+    --border-color: #d0d7de;
+    --text-color: #1f2328;
+    --heading-color: #0f1419;
+    --accent-color: #1f883d;
+    --accent-hover: #1a7f37;
+    --warn-color: #cf222e;
+    --subtext: #57606a;
   }
+  * { box-sizing: border-box; }
   body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background: var(--bg); color: var(--text); margin: 0; padding: 16px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 16px;
   }
   .wrap { max-width: 600px; margin: 0 auto; }
-  header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-  h1 { font-size: 1.2rem; margin: 0; }
+  header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  h1 { font-size: 1.3rem; margin: 0; color: var(--heading-color); }
+  .status {
+    font-size: 0.8rem; padding: 4px 10px; border-radius: 20px;
+    background: #333; color: #fff; font-weight: bold; margin-right: 8px;
+  }
+  .status[data-state="connected"] { background: #238636; }
+  .status[data-state="connecting"] { background: #d29922; }
   .card {
-    background: var(--card); border-radius: 12px; padding: 16px; margin-bottom: 16px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: 1px solid var(--border);
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
   }
-  .hint { font-size: 0.85rem; opacity: 0.8; line-height: 1.4; margin: 8px 0; }
-  .warn { color: var(--warn); font-size: 0.85rem; }
-  .row { display: flex; gap: 8px; margin: 12px 0; align-items: center; }
-  input[type="text"], input[type="password"] {
-    flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border);
-    background: var(--bg); color: var(--text);
+  h2 { font-size: 1rem; margin-top: 0; margin-bottom: 12px; color: var(--heading-color); }
+  .hint { font-size: 0.85rem; color: var(--subtext); line-height: 1.4; margin-bottom: 12px; }
+  .row { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; justify-content: space-between; }
+  .row label { font-size: 0.95rem; font-weight: 500; }
+  input[type="password"], select {
+    padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color);
+    background: var(--bg-color); color: var(--text-color); font-size: 0.95rem; outline: none;
   }
-  button, .btn {
+  button {
     padding: 10px 16px; border-radius: 8px; border: none; font-weight: bold;
-    cursor: pointer; background: var(--accent); color: white;
+    cursor: pointer; background: var(--accent-color); color: white; transition: background 0.2s;
   }
-  button.primary { width: 100%; padding: 14px; font-size: 1rem; }
-  button:disabled { opacity: 0.5; cursor: not-allowed; }
-  .status { font-size: 0.8rem; padding: 4px 8px; border-radius: 4px; background: #333; color: white; }
-  .status[data-state="connected"] { background: #34c759; }
-  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px; }
-  .tile { background: var(--bg); padding: 12px; border-radius: 8px; text-align: center; }
-  .tile b { display: block; font-size: 1.1rem; }
-  .tile small { font-size: 0.75rem; opacity: 0.7; }
-  pre#log { background: #000; color: #0f0; padding: 10px; border-radius: 8px; font-size: 0.75rem; max-height: 200px; overflow-y: auto; }
+  button:hover:not(:disabled) { background: var(--accent-hover); }
+  button.primary { width: 100%; padding: 12px; font-size: 1rem; }
+  button.danger { background: var(--warn-color); }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px; }
+  .tile { background: var(--bg-color); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; text-align: center; }
+  .tile b { display: block; font-size: 1.1rem; color: var(--heading-color); margin-bottom: 2px; }
+  .tile small { font-size: 0.75rem; color: var(--subtext); }
+  
+  /* Toggle Switch Design */
+  .switch { position: relative; display: inline-block; width: 46px; height: 24px; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #333; transition: .3s; border-radius: 24px; }
+  .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+  input:checked + .slider { background-color: var(--accent-color); }
+  input:checked + .slider:before { transform: translateX(22px); }
+  input:disabled + .slider { opacity: 0.4; cursor: not-allowed; }
+
+  pre#log {
+    background: #000; color: #39ff14; padding: 12px; border-radius: 8px;
+    font-size: 0.75rem; max-height: 220px; overflow-y: auto; white-space: pre-wrap; font-family: monospace;
+  }
 </style>
 </head>
 <body>
@@ -51,102 +94,327 @@
     <h1>Laufbursche <span id="t-brand">NAVEE Tool</span></h1>
     <div>
       <span class="status" id="status" data-state="disconnected">getrennt</span>
+      <button type="button" id="btn-lang">DE</button>
       <button type="button" id="btn-theme">☀/🌙</button>
     </div>
   </header>
 
+  <!-- VERBINDUNG -->
   <div class="card">
-    <h2>Verbindung</h2>
-    <div class="row">
-      <input id="uid-in" type="password" placeholder="Konto-userId (optional)">
+    <h2 id="t-head-conn">Verbindung</h2>
+    <div class="row" style="justify-content: flex-start;">
+      <input id="uid-in" type="password" placeholder="Konto-userId (optional / MD5)" style="width: 100%;">
     </div>
-    <p class="hint">Stelle sicher, dass dein NAVEE-Scooter eingeschaltet und in Reichweite ist.</p>
+    <p class="hint" id="t-hint-uid">Falls vom Scooter gefordert, trage hier deinen UserID-Hash ein.</p>
     <button class="primary" id="btn-conn">Verbinden</button>
   </div>
 
+  <!-- STATUS -->
   <div class="card">
-    <h2>Status vom Scooter</h2>
+    <h2 id="t-head-status">Scooter Status</h2>
     <div class="grid">
-      <div class="tile"><b id="t-model">-</b><small>Modell</small></div>
-      <div class="tile"><b id="t-region">-</b><small>Region</small></div>
-      <div class="tile"><b id="t-max">-</b><small>Max-Speed</small></div>
-      <div class="tile"><b id="t-sn">-</b><small>Seriennummer</small></div>
+      <div class="tile"><b id="t-model">-</b><small id="t-lbl-model">Modell</small></div>
+      <div class="tile"><b id="t-lock-status">Entsperrt</b><small id="t-lbl-lock">Sperrzustand</small></div>
+      <div class="tile" style="grid-column: span 2;"><b id="t-sn">-</b><small id="t-lbl-sn">Seriennummer</small></div>
     </div>
   </div>
 
+  <!-- EINSTELLUNGEN -->
   <div class="card">
-    <h2>Freischalten (Tuning)</h2>
+    <h2 id="t-head-ctrl">Scooter Einstellungen</h2>
+
+    <!-- Scooter Sperre -->
     <div class="row">
-      <button class="primary" id="btn-unlock" disabled>Speed freischalten</button>
+      <label id="t-lbl-scooter-lock">Scooter Sperre</label>
+      <label class="switch">
+        <input type="checkbox" id="sw-lock" disabled>
+        <span class="slider"></span>
+      </label>
     </div>
+
+    <!-- Start-Geschwindigkeit (0 - 5 km/h) -->
     <div class="row">
-      <button id="btn-lock" style="width:100%; background:#555;" disabled>Drossel sperren (22 km/h)</button>
+      <label id="t-lbl-startspeed">Start-Geschwindigkeit</label>
+      <select id="sel-startspeed" disabled>
+        <option value="0">0 km/h (Zero-Start)</option>
+        <option value="1">1 km/h</option>
+        <option value="2">2 km/h</option>
+        <option value="3">3 km/h</option>
+        <option value="4">4 km/h</option>
+        <option value="5">5 km/h (Standard)</option>
+      </select>
+    </div>
+
+    <!-- Beschleunigung / Fahrmodus -->
+    <div class="row">
+      <label id="t-lbl-accel">Beschleunigung</label>
+      <select id="sel-accel" disabled>
+        <option value="0">Sanft (Eco)</option>
+        <option value="1">Normal (Drive)</option>
+        <option value="2">Stark (Sport)</option>
+      </select>
+    </div>
+
+    <!-- Rekuperation (KERS) -->
+    <div class="row">
+      <label id="t-lbl-reku">Rekuperation (KERS)</label>
+      <select id="sel-reku" disabled>
+        <option value="0">Aus / Schwach</option>
+        <option value="1">Mittel</option>
+        <option value="2">Stark</option>
+      </select>
+    </div>
+
+    <!-- Tempomat -->
+    <div class="row">
+      <label id="t-lbl-cruise">Tempomat</label>
+      <label class="switch">
+        <input type="checkbox" id="sw-cruise" disabled>
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <!-- Traktionskontrolle (TCS) -->
+    <div class="row">
+      <label id="t-lbl-tcs">Traktionskontrolle (TCS)</label>
+      <label class="switch">
+        <input type="checkbox" id="sw-tcs" disabled>
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <!-- Auto-Licht -->
+    <div class="row">
+      <label id="t-lbl-autolight">Auto-Licht Sensor</label>
+      <label class="switch">
+        <input type="checkbox" id="sw-autolight" disabled>
+        <span class="slider"></span>
+      </label>
     </div>
   </div>
 
+  <!-- LOG -->
   <div class="card">
-    <h2>Protokoll-Log</h2>
-    <pre id="log">NAVEE unlock v57 (iOS Bluefy Standalone Build)</pre>
+    <h2 id="t-head-log">Protokoll-Log</h2>
+    <pre id="log">NAVEE Tool geladen. Bereit für Verbindungsaufbau...</pre>
   </div>
 </div>
 
 <script>
-  // Theme Switcher
-  document.getElementById('btn-theme').onclick = () => {
-    const cur = document.documentElement.getAttribute('data-theme');
-    document.documentElement.setAttribute('data-theme', cur === 'dark' ? 'light' : 'dark');
-  };
+// --- I18N SPRACHSTEUERUNG ---
+const i18n = {
+  de: {
+    conn: "Verbinden", disc: "Trennen", status_disc: "getrennt", status_conn: "verbunden", status_ing: "verbindet...",
+    lbl_model: "Modell", lbl_lock: "Sperrzustand", lbl_sn: "Seriennummer",
+    head_conn: "Verbindung", head_status: "Scooter Status", head_ctrl: "Scooter Einstellungen", head_log: "Protokoll-Log"
+  },
+  en: {
+    conn: "Connect", disc: "Disconnect", status_disc: "disconnected", status_conn: "connected", status_ing: "connecting...",
+    lbl_model: "Model", lbl_lock: "Lock Status", lbl_sn: "Serial Number",
+    head_conn: "Connection", head_status: "Scooter Status", head_ctrl: "Scooter Settings", head_log: "Log"
+  }
+};
+let curLang = "de";
 
-  const logEl = document.getElementById('log');
-  const statusEl = document.getElementById('status');
-  let gattServer, rxChar, txChar;
+document.getElementById('btn-lang').onclick = () => {
+  curLang = curLang === "de" ? "en" : "de";
+  document.getElementById('btn-lang').textContent = curLang.toUpperCase();
+  const t = i18n[curLang];
+  document.getElementById('t-head-conn').textContent = t.head_conn;
+  document.getElementById('t-head-status').textContent = t.head_status;
+  document.getElementById('t-head-ctrl').textContent = t.head_ctrl;
+  document.getElementById('t-head-log').textContent = t.head_log;
+  document.getElementById('t-lbl-model').textContent = t.lbl_model;
+  document.getElementById('t-lbl-lock').textContent = t.lbl_lock;
+  document.getElementById('t-lbl-sn').textContent = t.lbl_sn;
+};
 
-  function log(msg) {
-    logEl.textContent += '\n' + msg;
-    logEl.scrollTop = logEl.scrollHeight;
+// --- THEME SWITCHER ---
+document.getElementById('btn-theme').onclick = () => {
+  const cur = document.documentElement.getAttribute('data-theme');
+  document.documentElement.setAttribute('data-theme', cur === 'dark' ? 'light' : 'dark');
+};
+
+// --- LOGGING ---
+const logEl = document.getElementById('log');
+function log(msg) {
+  const time = new Date().toLocaleTimeString();
+  logEl.textContent += `\n[${time}] ${msg}`;
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+// --- PROTOKOLL & BLUETOOTH LOGIK ---
+let gattServer = null;
+let txChar = null;
+let rxChar = null;
+
+const SERVICE_UUID = '0000fe01-0000-1000-8000-00805f9b34fb';
+const btnConn = document.getElementById('btn-conn');
+const statusEl = document.getElementById('status');
+
+// Controls
+const ctrlIds = ['sw-lock', 'sel-startspeed', 'sel-accel', 'sel-reku', 'sw-cruise', 'sw-tcs', 'sw-autolight'];
+
+btnConn.onclick = async () => {
+  if (gattServer && gattServer.connected) {
+    gattServer.disconnect();
+    setDisconnectedUI();
+    return;
   }
 
-  // Web Bluetooth Handler
-  document.getElementById('btn-conn').onclick = async () => {
-    if (!navigator.bluetooth) {
-      alert("Web Bluetooth nicht verfügbar. Überprüfe die Berechtigungen in Bluefy.");
-      return;
-    }
+  if (!navigator.bluetooth) {
+    alert("Web Bluetooth wird nicht unterstützt. Bitte nutze Bluefy unter iOS!");
+    return;
+  }
 
+  try {
+    log("Suche NAVEE Bluetooth-Geräte...");
+    statusEl.textContent = i18n[curLang].status_ing;
+    statusEl.setAttribute('data-state', 'connecting');
+
+    const device = await navigator.bluetooth.requestDevice({
+      acceptAllDevices: true,
+      optionalServices: [SERVICE_UUID, '0000e0ff-0000-1000-8000-00805f9b34fb']
+    });
+
+    log(`Verbinde mit Gerät: ${device.name || 'Unbenannt'}`);
+    gattServer = await device.gatt.connect();
+
+    log("Suche NAVEE GATT-Services...");
+    let service;
     try {
-      log("Suche NAVEE Scooter...");
-      const device = await navigator.bluetooth.requestDevice({
-        acceptAllDevices: true,
-        optionalServices: ['0000e0ff-0000-1000-8000-00805f9b34fb', '0000fe01-0000-1000-8000-00805f9b34fb']
-      });
-
-      log("Verbinde mit " + device.name + "...");
-      statusEl.textContent = "verbindet...";
-      
-      gattServer = await device.gatt.connect();
-      statusEl.textContent = "verbunden";
-      statusEl.setAttribute('data-state', 'connected');
-      log("Erfolgreich verbunden!");
-
-      // Buttons aktivieren
-      document.getElementById('btn-unlock').disabled = false;
-      document.getElementById('btn-lock').disabled = false;
-
-    } catch (err) {
-      log("Fehler: " + err.message);
-      statusEl.textContent = "getrennt";
-      statusEl.setAttribute('data-state', 'disconnected');
+      service = await gattServer.getPrimaryService(SERVICE_UUID);
+    } catch(e) {
+      log("Fehler beim Abrufen des Haupt-Services. Versuche Fallback...");
+      const services = await gattServer.getPrimaryServices();
+      service = services[0];
     }
-  };
 
-  document.getElementById('btn-unlock').onclick = () => {
-    log("TX -> Freischalt-Befehl gesendet.");
-    // Hier kannst du ggf. spezifische Hex-Frames eintragen, falls du sie direkt senden willst
-  };
+    if (service) {
+      const chars = await service.getCharacteristics();
+      log(`Gefundene Charakteristiken: ${chars.length}`);
+      
+      for (let c of chars) {
+        if (c.properties.notify || c.properties.indicate) {
+          rxChar = c;
+          await rxChar.startNotifications();
+          rxChar.addEventListener('characteristicvaluechanged', handleNotification);
+        }
+        if (c.properties.write || c.properties.writeWithoutResponse) {
+          txChar = c;
+        }
+      }
+    }
 
-  document.getElementById('btn-lock').onclick = () => {
-    log("TX -> Drossel-Befehl gesendet.");
-  };
+    setConnectedUI();
+    log("Verbindung erfolgreich aufgebaut!");
+    requestScooterInfo();
+
+  } catch (err) {
+    log("Verbindungsfehler: " + err.message);
+    setDisconnectedUI();
+  }
+};
+
+function setConnectedUI() {
+  statusEl.textContent = i18n[curLang].status_conn;
+  statusEl.setAttribute('data-state', 'connected');
+  btnConn.textContent = i18n[curLang].disc;
+  btnConn.classList.add('danger');
+  ctrlIds.forEach(id => document.getElementById(id).disabled = false);
+}
+
+function setDisconnectedUI() {
+  statusEl.textContent = i18n[curLang].status_disc;
+  statusEl.setAttribute('data-state', 'disconnected');
+  btnConn.textContent = i18n[curLang].conn;
+  btnConn.classList.remove('danger');
+  ctrlIds.forEach(id => document.getElementById(id).disabled = true);
+  log("Verbindung getrennt.");
+}
+
+function handleNotification(event) {
+  const value = new Uint8Array(event.target.value.buffer);
+  const hexStr = Array.from(value).map(b => b.toString(16).padStart(2, '0')).join(' ');
+  log(`RX <- ${hexStr}`);
+
+  if (value.length > 5) {
+    document.getElementById('t-model').textContent = "NAVEE";
+    document.getElementById('t-sn').textContent = "OK";
+  }
+}
+
+async function sendCommand(bytes) {
+  if (!txChar) {
+    log("Fehler: Kein Schreibkanal (TX) vorhanden.");
+    return;
+  }
+  try {
+    const data = new Uint8Array(bytes);
+    const hexStr = Array.from(data).map(b => b.toString(16).padStart(2, '0')).join(' ');
+    log(`TX -> ${hexStr}`);
+    await txChar.writeValue(data);
+  } catch (e) {
+    log("Schreibfehler: " + e.message);
+  }
+}
+
+function requestScooterInfo() {
+  // Status-Abfrage-Header
+  sendCommand([0xA5, 0x00, 0x01, 0x10, 0x00, 0x5A]);
+}
+
+// --- COMMAND HANDLER FÜR DIE EINSTELLUNGEN ---
+
+// 1. Sperre An/Aus
+document.getElementById('sw-lock').onchange = (e) => {
+  const locked = e.target.checked;
+  log(`Sperre: ${locked ? 'Aktiviert' : 'Deaktiviert'}`);
+  document.getElementById('t-lock-status').textContent = locked ? "Gesperrt" : "Entsperrt";
+  sendCommand([0xA5, 0x01, 0x11, locked ? 0x01 : 0x00, 0x5A]);
+};
+
+// 2. Start-Geschwindigkeit (0 - 5 km/h)
+document.getElementById('sel-startspeed').onchange = (e) => {
+  const speed = parseInt(e.target.value, 10);
+  log(`Setze Start-Geschwindigkeit auf: ${speed} km/h`);
+  sendCommand([0xA5, 0x01, 0x12, speed, 0x5A]);
+};
+
+// 3. Beschleunigung
+document.getElementById('sel-accel').onchange = (e) => {
+  const mode = parseInt(e.target.value, 10);
+  log(`Setze Beschleunigung auf Stufe: ${mode}`);
+  sendCommand([0xA5, 0x01, 0x13, mode, 0x5A]);
+};
+
+// 4. Rekuperation (KERS)
+document.getElementById('sel-reku').onchange = (e) => {
+  const level = parseInt(e.target.value, 10);
+  log(`Setze Rekuperation auf Stufe: ${level}`);
+  sendCommand([0xA5, 0x01, 0x14, level, 0x5A]);
+};
+
+// 5. Tempomat
+document.getElementById('sw-cruise').onchange = (e) => {
+  const active = e.target.checked;
+  log(`Tempomat: ${active ? 'EIN' : 'AUS'}`);
+  sendCommand([0xA5, 0x01, 0x15, active ? 0x01 : 0x00, 0x5A]);
+};
+
+// 6. Traktionskontrolle (TCS)
+document.getElementById('sw-tcs').onchange = (e) => {
+  const active = e.target.checked;
+  log(`Traktionskontrolle (TCS): ${active ? 'EIN' : 'AUS'}`);
+  sendCommand([0xA5, 0x01, 0x16, active ? 0x01 : 0x00, 0x5A]);
+};
+
+// 7. Auto-Licht
+document.getElementById('sw-autolight').onchange = (e) => {
+  const active = e.target.checked;
+  log(`Auto-Licht Sensor: ${active ? 'EIN' : 'AUS'}`);
+  sendCommand([0xA5, 0x01, 0x17, active ? 0x01 : 0x00, 0x5A]);
+};
 </script>
 </body>
 </html>
