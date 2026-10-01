@@ -51,27 +51,42 @@
     padding: 14px;
     margin-bottom: 14px;
   }
+  .section-title {
+    font-size: 0.85rem;
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: var(--heading-color);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 4px;
+  }
   .row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 8px; }
+  .grid-6 { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-bottom: 8px; }
+
   input[type="text"] {
     flex: 1; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color);
     background: var(--bg-color); color: #39ff14; font-family: monospace; font-size: 0.9rem; outline: none;
   }
   button {
-    padding: 10px 14px; border-radius: 6px; border: none; font-weight: bold;
+    padding: 10px 8px; border-radius: 6px; border: none; font-weight: bold;
     cursor: pointer; background: var(--accent-color); color: white; transition: background 0.2s;
+    font-size: 0.85rem; text-align: center;
   }
   button:hover:not(:disabled) { background: var(--accent-hover); }
   button.primary { background: #1f6feb; }
   button.primary:hover:not(:disabled) { background: #388bfd; }
   button.secondary { background: #8957e5; }
   button.secondary:hover:not(:disabled) { background: #a371f7; }
+  button.dark-btn { background: #30363d; color: var(--text-color); }
+  button.dark-btn:hover:not(:disabled) { background: #484f58; }
   button.danger { background: var(--warn-color); }
   button:disabled { opacity: 0.4; cursor: not-allowed; }
   
   pre#console {
     background: #000; color: #39ff14; padding: 12px; border-radius: 6px;
-    font-size: 0.8rem; height: 320px; overflow-y: auto; white-space: pre-wrap;
+    font-size: 0.8rem; height: 280px; overflow-y: auto; white-space: pre-wrap;
     font-family: monospace; border: 1px solid var(--border-color); margin: 0;
   }
   .rx-text { color: #00ffff; }
@@ -89,32 +104,69 @@
 
   <!-- VERBINDUNG -->
   <div class="card">
-    <div class="row">
+    <div class="row" style="margin-bottom:0;">
       <button id="btn-conn" style="width: 100%;">Gerät suchen & verbinden</button>
     </div>
-    <div class="row">
+    <div class="row" style="margin-top: 6px; margin-bottom:0;">
       <span class="sys-text" id="dev-info">Kein Gerät ausgewählt</span>
     </div>
   </div>
 
-  <!-- SCHNELLSTEUERUNG -->
+  <!-- STEUERUNG -->
   <div class="card">
-    <div style="font-size: 0.85rem; font-weight: bold; margin-bottom: 8px;">Sperre & Entsperre</div>
+    <!-- Schloss -->
+    <div class="section-title">Sperre / Entsperre</div>
     <div class="grid-2">
-      <button id="btn-open" class="primary" disabled>🔓 Öffnen</button>
-      <button id="btn-close" class="danger" disabled>🔒 Schließen</button>
+      <button id="btn-unlock" class="primary" disabled>🔓 Unlock</button>
+      <button id="btn-lock" class="danger" disabled>🔒 Lock</button>
     </div>
 
-    <div style="font-size: 0.85rem; font-weight: bold; margin-top: 12px; margin-bottom: 8px;">Tempomat</div>
+    <!-- KERS -->
+    <div class="section-title" style="margin-top: 10px;">KERS (Rekuperation)</div>
+    <div class="grid-4">
+      <button id="btn-kers-off" class="dark-btn" disabled>Aus</button>
+      <button id="btn-kers-low" class="secondary" disabled>Low</button>
+      <button id="btn-kers-mid" class="secondary" disabled>Mid</button>
+      <button id="btn-kers-high" class="secondary" disabled>High</button>
+    </div>
+
+    <!-- TCS & Eco Turbo -->
+    <div class="section-title" style="margin-top: 10px;">Traktionskontrolle & Modi</div>
     <div class="grid-2">
-      <button id="btn-cruise-on" class="secondary" disabled>🚀 Tempomat AN</button>
-      <button id="btn-cruise-off" style="background: #484f58;" disabled>🛑 Tempomat AUS</button>
+      <button id="btn-tcs-on" class="primary" disabled>TCS An</button>
+      <button id="btn-tcs-off" class="dark-btn" disabled>TCS Aus</button>
+    </div>
+    <div class="grid-2">
+      <button id="btn-turbo-on" class="secondary" disabled>Eco Turbo An</button>
+      <button id="btn-turbo-off" class="dark-btn" disabled>Eco Turbo Aus</button>
+    </div>
+
+    <!-- Startgeschwindigkeit -->
+    <div class="section-title" style="margin-top: 10px;">Startgeschwindigkeit (Kickstart)</div>
+    <div class="grid-6">
+      <button id="btn-speed-0" class="primary" disabled>0 km/h</button>
+      <button id="btn-speed-1" class="dark-btn" disabled>1</button>
+      <button id="btn-speed-2" class="dark-btn" disabled>2</button>
+      <button id="btn-speed-3" class="dark-btn" disabled>3</button>
+      <button id="btn-speed-4" class="dark-btn" disabled>4</button>
+      <button id="btn-speed-5" class="dark-btn" disabled>5 km/h</button>
+    </div>
+
+    <!-- Licht & Töne -->
+    <div class="section-title" style="margin-top: 10px;">Licht & Sound</div>
+    <div class="grid-2">
+      <button id="btn-light-on" class="primary" disabled>💡 Rücklicht An</button>
+      <button id="btn-light-off" class="dark-btn" disabled>💡 Rücklicht Aus</button>
+    </div>
+    <div class="grid-2">
+      <button id="btn-sound-on" class="primary" disabled>🔊 Blinker Sound An</button>
+      <button id="btn-sound-off" class="dark-btn" disabled>🔇 Blinker Sound Aus</button>
     </div>
   </div>
 
   <!-- MANUELLES HEX SENDEN -->
   <div class="card">
-    <div style="font-size: 0.85rem; font-weight: bold; margin-bottom: 8px;">Manuelles Hex Terminal</div>
+    <div class="section-title">Manuelles Hex Terminal</div>
     <div class="row">
       <input type="text" id="hex-input" placeholder="Hex eingeben (z.B. 55 AA 00...)" disabled>
       <button id="btn-send" disabled>Senden</button>
@@ -138,21 +190,63 @@ let rxChars = [];
 
 const btnConn = document.getElementById('btn-conn');
 const btnSend = document.getElementById('btn-send');
-const btnOpen = document.getElementById('btn-open');
-const btnClose = document.getElementById('btn-close');
-const btnCruiseOn = document.getElementById('btn-cruise-on');
-const btnCruiseOff = document.getElementById('btn-cruise-off');
 const btnClear = document.getElementById('btn-clear');
 const hexInput = document.getElementById('hex-input');
 const statusEl = document.getElementById('status');
 const devInfo = document.getElementById('dev-info');
 const consoleEl = document.getElementById('console');
 
-// Korrigierte Hex-Befehle
-const HEX_OPEN       = "55 AA 00 51 01 00 51 FE FD";
-const HEX_CLOSE      = "55 AA 00 51 01 01 52 FE FD";
-const HEX_CRUISE_ON  = "55 AA 00 52 01 01 53 FE FD";
-const HEX_CRUISE_OFF = "55 AA 00 52 01 00 52 FE FD";
+// Befehlsliste
+const COMMANDS = {
+  unlock:      "55 AA 00 52 01 00 52 FD FE",
+  lock:        "55 AA 00 52 01 01 53 FD FE",
+  kersOff:     "55 AA 00 53 01 00 53 FD FE",
+  kersLow:     "55 AA 00 53 01 1E 71 FD FE",
+  kersMid:     "55 AA 00 53 01 3C 8F FD FE",
+  kersHigh:    "55 AA 00 53 01 5A AD FD FE",
+  tcsOn:       "55 AA 00 5F 01 01 60 FD FE",
+  tcsOff:      "55 AA 00 5F 01 00 5F FD FE",
+  speed5:      "55 AA 00 6A 01 05 6F FD FE",
+  speed4:      "55 AA 00 6A 01 04 6E FD FE",
+  speed3:      "55 AA 00 6A 01 03 6D FD FE",
+  speed2:      "55 AA 00 6A 01 02 6C FD FE",
+  speed1:      "55 AA 00 6A 01 01 6B FD FE",
+  speed0:      "55 AA 00 6A 01 00 6A FD FE",
+  turboOn:     "55 AA 00 58 01 05 5D FD FE",
+  turboOff:    "55 AA 00 58 01 03 5B FD FE",
+  lightOn:     "55 AA 00 54 01 01 55 FD FE",
+  lightOff:    "55 AA 00 54 01 00 54 FD FE",
+  soundOn:     "55 AA 00 60 01 01 61 FD FE",
+  soundOff:    "55 AA 00 60 01 00 60 FD FE"
+};
+
+const actionButtons = [
+  { id: 'btn-unlock', hex: COMMANDS.unlock },
+  { id: 'btn-lock', hex: COMMANDS.lock },
+  { id: 'btn-kers-off', hex: COMMANDS.kersOff },
+  { id: 'btn-kers-low', hex: COMMANDS.kersLow },
+  { id: 'btn-kers-mid', hex: COMMANDS.kersMid },
+  { id: 'btn-kers-high', hex: COMMANDS.kersHigh },
+  { id: 'btn-tcs-on', hex: COMMANDS.tcsOn },
+  { id: 'btn-tcs-off', hex: COMMANDS.tcsOff },
+  { id: 'btn-speed-0', hex: COMMANDS.speed0 },
+  { id: 'btn-speed-1', hex: COMMANDS.speed1 },
+  { id: 'btn-speed-2', hex: COMMANDS.speed2 },
+  { id: 'btn-speed-3', hex: COMMANDS.speed3 },
+  { id: 'btn-speed-4', hex: COMMANDS.speed4 },
+  { id: 'btn-speed-5', hex: COMMANDS.speed5 },
+  { id: 'btn-turbo-on', hex: COMMANDS.turboOn },
+  { id: 'btn-turbo-off', hex: COMMANDS.turboOff },
+  { id: 'btn-light-on', hex: COMMANDS.lightOn },
+  { id: 'btn-light-off', hex: COMMANDS.lightOff },
+  { id: 'btn-sound-on', hex: COMMANDS.soundOn },
+  { id: 'btn-sound-off', hex: COMMANDS.soundOff }
+];
+
+actionButtons.forEach(b => {
+  const el = document.getElementById(b.id);
+  if (el) el.onclick = () => sendHex(b.hex);
+});
 
 function log(msg, type = 'sys') {
   const time = new Date().toLocaleTimeString();
@@ -178,7 +272,7 @@ btnConn.onclick = async () => {
   }
 
   try {
-    log("Scanne nach allen Bluetooth LE Geräten...", "sys");
+    log("Scanne nach Bluetooth LE Geräten...", "sys");
     statusEl.textContent = "Suche...";
     statusEl.setAttribute('data-state', 'connecting');
 
@@ -196,7 +290,7 @@ btnConn.onclick = async () => {
     log(`Verbinde mit: ${device.name || 'Unbenannt'}...`, "sys");
 
     gattServer = await device.gatt.connect();
-    log("GATT Server verbunden! Rufe Primary Services ab...", "sys");
+    log("GATT Server verbunden! Rufe Services ab...", "sys");
 
     const services = await gattServer.getPrimaryServices();
     log(`Anzahl gefundener Services: ${services.length}`, "sys");
@@ -258,11 +352,6 @@ function handleRX(event) {
 }
 
 btnSend.onclick = () => sendHex(hexInput.value);
-btnOpen.onclick = () => sendHex(HEX_OPEN);
-btnClose.onclick = () => sendHex(HEX_CLOSE);
-btnCruiseOn.onclick = () => sendHex(HEX_CRUISE_ON);
-btnCruiseOff.onclick = () => sendHex(HEX_CRUISE_OFF);
-
 hexInput.onkeydown = (e) => { if (e.key === 'Enter') sendHex(hexInput.value); };
 
 async function sendHex(hexString) {
@@ -292,17 +381,21 @@ async function sendHex(hexString) {
   }
 }
 
+function setButtonsDisabled(disabled) {
+  actionButtons.forEach(b => {
+    const el = document.getElementById(b.id);
+    if (el) el.disabled = disabled;
+  });
+  btnSend.disabled = disabled;
+  hexInput.disabled = disabled;
+}
+
 function connectUI() {
   statusEl.textContent = "Verbunden";
   statusEl.setAttribute('data-state', 'connected');
   btnConn.textContent = "Trennen";
   btnConn.classList.add('danger');
-  btnSend.disabled = false;
-  btnOpen.disabled = false;
-  btnClose.disabled = false;
-  btnCruiseOn.disabled = false;
-  btnCruiseOff.disabled = false;
-  hexInput.disabled = false;
+  setButtonsDisabled(false);
 }
 
 function disconnectUI() {
@@ -310,12 +403,7 @@ function disconnectUI() {
   statusEl.setAttribute('data-state', 'disconnected');
   btnConn.textContent = "Gerät suchen & verbinden";
   btnConn.classList.remove('danger');
-  btnSend.disabled = true;
-  btnOpen.disabled = true;
-  btnClose.disabled = true;
-  btnCruiseOn.disabled = true;
-  btnCruiseOff.disabled = true;
-  hexInput.disabled = true;
+  setButtonsDisabled(true);
   devInfo.textContent = "Kein Gerät ausgewählt";
   log("Verbindung getrennt.", "sys");
 }
