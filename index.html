@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Bluetooth Terminal & Sniffer</title>
+<title>Bluetooth Terminal & Control</title>
 <style>
   :root {
     --bg-color: #0d0f12;
@@ -64,12 +64,14 @@
   button:hover:not(:disabled) { background: var(--accent-hover); }
   button.primary { background: #1f6feb; }
   button.primary:hover:not(:disabled) { background: #388bfd; }
+  button.secondary { background: #8957e5; }
+  button.secondary:hover:not(:disabled) { background: #a371f7; }
   button.danger { background: var(--warn-color); }
   button:disabled { opacity: 0.4; cursor: not-allowed; }
   
   pre#console {
     background: #000; color: #39ff14; padding: 12px; border-radius: 6px;
-    font-size: 0.8rem; height: 350px; overflow-y: auto; white-space: pre-wrap;
+    font-size: 0.8rem; height: 320px; overflow-y: auto; white-space: pre-wrap;
     font-family: monospace; border: 1px solid var(--border-color); margin: 0;
   }
   .rx-text { color: #00ffff; }
@@ -95,12 +97,18 @@
     </div>
   </div>
 
-  <!-- SCHNELLSTEUERUNG (ÖFFNEN / SCHLIESSEN) -->
+  <!-- SCHNELLSTEUERUNG -->
   <div class="card">
-    <div style="font-size: 0.85rem; font-weight: bold; margin-bottom: 8px;">Schnellbefehle</div>
+    <div style="font-size: 0.85rem; font-weight: bold; margin-bottom: 8px;">Sperre & Entsperre</div>
     <div class="grid-2">
       <button id="btn-open" class="primary" disabled>🔓 Öffnen</button>
       <button id="btn-close" class="danger" disabled>🔒 Schließen</button>
+    </div>
+
+    <div style="font-size: 0.85rem; font-weight: bold; margin-top: 12px; margin-bottom: 8px;">Tempomat</div>
+    <div class="grid-2">
+      <button id="btn-cruise-on" class="secondary" disabled>🚀 Tempomat AN</button>
+      <button id="btn-cruise-off" style="background: #484f58;" disabled>🛑 Tempomat AUS</button>
     </div>
   </div>
 
@@ -132,14 +140,19 @@ const btnConn = document.getElementById('btn-conn');
 const btnSend = document.getElementById('btn-send');
 const btnOpen = document.getElementById('btn-open');
 const btnClose = document.getElementById('btn-close');
+const btnCruiseOn = document.getElementById('btn-cruise-on');
+const btnCruiseOff = document.getElementById('btn-cruise-off');
 const btnClear = document.getElementById('btn-clear');
 const hexInput = document.getElementById('hex-input');
 const statusEl = document.getElementById('status');
 const devInfo = document.getElementById('dev-info');
 const consoleEl = document.getElementById('console');
 
-const HEX_OPEN  = "55 AA 00 51 01 00 51 FE FD";
-const HEX_CLOSE = "55 AA 00 51 01 01 52 FE FD";
+// Hex-Befehle
+const HEX_OPEN       = "55 AA 00 51 01 00 51 FE FD";
+const HEX_CLOSE      = "55 AA 00 51 01 01 52 FE FD";
+const HEX_CRUISE_ON  = "55 AA 00 70 6F FE FD";
+const HEX_CRUISE_OFF = "55 AA 00 74 73 FE FD";
 
 function log(msg, type = 'sys') {
   const time = new Date().toLocaleTimeString();
@@ -247,6 +260,8 @@ function handleRX(event) {
 btnSend.onclick = () => sendHex(hexInput.value);
 btnOpen.onclick = () => sendHex(HEX_OPEN);
 btnClose.onclick = () => sendHex(HEX_CLOSE);
+btnCruiseOn.onclick = () => sendHex(HEX_CRUISE_ON);
+btnCruiseOff.onclick = () => sendHex(HEX_CRUISE_OFF);
 
 hexInput.onkeydown = (e) => { if (e.key === 'Enter') sendHex(hexInput.value); };
 
@@ -285,6 +300,8 @@ function connectUI() {
   btnSend.disabled = false;
   btnOpen.disabled = false;
   btnClose.disabled = false;
+  btnCruiseOn.disabled = false;
+  btnCruiseOff.disabled = false;
   hexInput.disabled = false;
 }
 
@@ -296,6 +313,8 @@ function disconnectUI() {
   btnSend.disabled = true;
   btnOpen.disabled = true;
   btnClose.disabled = true;
+  btnCruiseOn.disabled = true;
+  btnCruiseOff.disabled = true;
   hexInput.disabled = true;
   devInfo.textContent = "Kein Gerät ausgewählt";
   log("Verbindung getrennt.", "sys");
