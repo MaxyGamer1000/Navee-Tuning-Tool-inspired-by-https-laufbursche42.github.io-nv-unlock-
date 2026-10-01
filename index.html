@@ -196,28 +196,28 @@ const statusEl = document.getElementById('status');
 const devInfo = document.getElementById('dev-info');
 const consoleEl = document.getElementById('console');
 
-// Befehlsliste
+// Befehlsliste (Endungen auf FE FD korrigiert)
 const COMMANDS = {
-  unlock:      "55 AA 00 52 01 00 52 FD FE",
-  lock:        "55 AA 00 52 01 01 53 FD FE",
-  kersOff:     "55 AA 00 53 01 00 53 FD FE",
-  kersLow:     "55 AA 00 53 01 1E 71 FD FE",
-  kersMid:     "55 AA 00 53 01 3C 8F FD FE",
-  kersHigh:    "55 AA 00 53 01 5A AD FD FE",
-  tcsOn:       "55 AA 00 5F 01 01 60 FD FE",
-  tcsOff:      "55 AA 00 5F 01 00 5F FD FE",
-  speed5:      "55 AA 00 6A 01 05 6F FD FE",
-  speed4:      "55 AA 00 6A 01 04 6E FD FE",
-  speed3:      "55 AA 00 6A 01 03 6D FD FE",
-  speed2:      "55 AA 00 6A 01 02 6C FD FE",
-  speed1:      "55 AA 00 6A 01 01 6B FD FE",
-  speed0:      "55 AA 00 6A 01 00 6A FD FE",
-  turboOn:     "55 AA 00 58 01 05 5D FD FE",
-  turboOff:    "55 AA 00 58 01 03 5B FD FE",
-  lightOn:     "55 AA 00 54 01 01 55 FD FE",
-  lightOff:    "55 AA 00 54 01 00 54 FD FE",
-  soundOn:     "55 AA 00 60 01 01 61 FD FE",
-  soundOff:    "55 AA 00 60 01 00 60 FD FE"
+  unlock:      "55 AA 00 52 01 00 52 FE FD",
+  lock:        "55 AA 00 52 01 01 53 FE FD",
+  kersOff:     "55 AA 00 53 01 00 53 FE FD",
+  kersLow:     "55 AA 00 53 01 1E 71 FE FD",
+  kersMid:     "55 AA 00 53 01 3C 8F FE FD",
+  kersHigh:    "55 AA 00 53 01 5A AD FE FD",
+  tcsOn:       "55 AA 00 5F 01 01 60 FE FD",
+  tcsOff:      "55 AA 00 5F 01 00 5F FE FD",
+  speed5:      "55 AA 00 6A 01 05 6F FE FD",
+  speed4:      "55 AA 00 6A 01 04 6E FE FD",
+  speed3:      "55 AA 00 6A 01 03 6D FE FD",
+  speed2:      "55 AA 00 6A 01 02 6C FE FD",
+  speed1:      "55 AA 00 6A 01 01 6B FE FD",
+  speed0:      "55 AA 00 6A 01 00 6A FE FD",
+  turboOn:     "55 AA 00 58 01 05 5D FE FD",
+  turboOff:    "55 AA 00 58 01 03 5B FE FD",
+  lightOn:     "55 AA 00 54 01 01 55 FE FD",
+  lightOff:    "55 AA 00 54 01 00 54 FE FD",
+  soundOn:     "55 AA 00 60 01 01 61 FE FD",
+  soundOff:    "55 AA 00 60 01 00 60 FE FD"
 };
 
 const actionButtons = [
