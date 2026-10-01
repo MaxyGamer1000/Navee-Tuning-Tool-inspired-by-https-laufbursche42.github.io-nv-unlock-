@@ -14,7 +14,8 @@
     --accent-color: #238636;
     --accent-hover: #2ea043;
     --warn-color: #da3633;
-    --subtext: #8b949e;
+    --btn-neutral: #21262d;
+    --btn-neutral-hover: #30363d;
   }
   [data-theme="light"] {
     --bg-color: #f6f8fa;
@@ -25,7 +26,8 @@
     --accent-color: #1f883d;
     --accent-hover: #1a7f37;
     --warn-color: #cf222e;
-    --subtext: #57606a;
+    --btn-neutral: #f3f4f6;
+    --btn-neutral-hover: #e5e7eb;
   }
   * { box-sizing: border-box; }
   body {
@@ -61,7 +63,6 @@
   }
   .row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
   .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
-  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 8px; }
   .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 8px; }
   .grid-6 { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-bottom: 8px; }
 
@@ -69,20 +70,29 @@
     flex: 1; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color);
     background: var(--bg-color); color: #39ff14; font-family: monospace; font-size: 0.9rem; outline: none;
   }
+  
+  /* Basis-Button Design (Neutral / Ohne Farbe) */
   button {
-    padding: 10px 8px; border-radius: 6px; border: none; font-weight: bold;
-    cursor: pointer; background: var(--accent-color); color: white; transition: background 0.2s;
+    padding: 10px 8px; border-radius: 6px; border: 1px solid var(--border-color); font-weight: bold;
+    cursor: pointer; background: var(--btn-neutral); color: var(--text-color); transition: all 0.2s ease;
     font-size: 0.85rem; text-align: center;
   }
-  button:hover:not(:disabled) { background: var(--accent-hover); }
-  button.primary { background: #1f6feb; }
-  button.primary:hover:not(:disabled) { background: #388bfd; }
-  button.secondary { background: #8957e5; }
-  button.secondary:hover:not(:disabled) { background: #a371f7; }
-  button.dark-btn { background: #30363d; color: var(--text-color); }
-  button.dark-btn:hover:not(:disabled) { background: #484f58; }
-  button.danger { background: var(--warn-color); }
+  button:hover:not(:disabled) { background: var(--btn-neutral-hover); }
   button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* Haupt-Verbindungsbutton */
+  #btn-conn {
+    background: var(--accent-color);
+    color: white;
+    border: none;
+  }
+  #btn-conn:hover:not(:disabled) { background: var(--accent-hover); }
+
+  /* Dynamische Farb-Klassen beim Klicken */
+  button.active-primary { background: #1f6feb !important; color: white !important; border-color: #388bfd !important; }
+  button.active-danger { background: var(--warn-color) !important; color: white !important; border-color: #f85149 !important; }
+  button.active-secondary { background: #8957e5 !important; color: white !important; border-color: #a371f7 !important; }
+  button.active-neutral { background: #30363d !important; color: white !important; border-color: #8b949e !important; }
   
   pre#console {
     background: #000; color: #39ff14; padding: 12px; border-radius: 6px;
@@ -117,50 +127,50 @@
     <!-- Schloss -->
     <div class="section-title">Sperre / Entsperre</div>
     <div class="grid-2">
-      <button id="btn-unlock" class="primary" disabled>🔓 Unlock</button>
-      <button id="btn-lock" class="danger" disabled>🔒 Lock</button>
+      <button id="btn-unlock" disabled>🔓 Unlock</button>
+      <button id="btn-lock" disabled>🔒 Lock</button>
     </div>
 
     <!-- KERS -->
     <div class="section-title" style="margin-top: 10px;">KERS (Rekuperation)</div>
     <div class="grid-4">
-      <button id="btn-kers-off" class="dark-btn" disabled>Aus</button>
-      <button id="btn-kers-low" class="secondary" disabled>Low</button>
-      <button id="btn-kers-mid" class="secondary" disabled>Mid</button>
-      <button id="btn-kers-high" class="secondary" disabled>High</button>
+      <button id="btn-kers-off" disabled>Aus</button>
+      <button id="btn-kers-low" disabled>Low</button>
+      <button id="btn-kers-mid" disabled>Mid</button>
+      <button id="btn-kers-high" disabled>High</button>
     </div>
 
     <!-- TCS & Eco Turbo -->
     <div class="section-title" style="margin-top: 10px;">Traktionskontrolle & Modi</div>
     <div class="grid-2">
-      <button id="btn-tcs-on" class="primary" disabled>TCS An</button>
-      <button id="btn-tcs-off" class="dark-btn" disabled>TCS Aus</button>
+      <button id="btn-tcs-on" disabled>TCS An</button>
+      <button id="btn-tcs-off" disabled>TCS Aus</button>
     </div>
     <div class="grid-2">
-      <button id="btn-turbo-on" class="secondary" disabled>Eco Turbo An</button>
-      <button id="btn-turbo-off" class="dark-btn" disabled>Eco Turbo Aus</button>
+      <button id="btn-turbo-on" disabled>Eco Turbo An</button>
+      <button id="btn-turbo-off" disabled>Eco Turbo Aus</button>
     </div>
 
     <!-- Startgeschwindigkeit -->
     <div class="section-title" style="margin-top: 10px;">Startgeschwindigkeit (Kickstart)</div>
     <div class="grid-6">
-      <button id="btn-speed-0" class="primary" disabled>0 km/h</button>
-      <button id="btn-speed-1" class="dark-btn" disabled>1</button>
-      <button id="btn-speed-2" class="dark-btn" disabled>2</button>
-      <button id="btn-speed-3" class="dark-btn" disabled>3</button>
-      <button id="btn-speed-4" class="dark-btn" disabled>4</button>
-      <button id="btn-speed-5" class="dark-btn" disabled>5 km/h</button>
+      <button id="btn-speed-0" disabled>0 km/h</button>
+      <button id="btn-speed-1" disabled>1</button>
+      <button id="btn-speed-2" disabled>2</button>
+      <button id="btn-speed-3" disabled>3</button>
+      <button id="btn-speed-4" disabled>4</button>
+      <button id="btn-speed-5" disabled>5 km/h</button>
     </div>
 
     <!-- Licht & Töne -->
     <div class="section-title" style="margin-top: 10px;">Licht & Sound</div>
     <div class="grid-2">
-      <button id="btn-light-on" class="primary" disabled>💡 Rücklicht An</button>
-      <button id="btn-light-off" class="dark-btn" disabled>💡 Rücklicht Aus</button>
+      <button id="btn-light-on" disabled>💡 Rücklicht An</button>
+      <button id="btn-light-off" disabled>💡 Rücklicht Aus</button>
     </div>
     <div class="grid-2">
-      <button id="btn-sound-on" class="primary" disabled>🔊 Blinker Sound An</button>
-      <button id="btn-sound-off" class="dark-btn" disabled>🔇 Blinker Sound Aus</button>
+      <button id="btn-sound-on" disabled>🔊 Blinker Sound An</button>
+      <button id="btn-sound-off" disabled>🔇 Blinker Sound Aus</button>
     </div>
   </div>
 
@@ -177,7 +187,7 @@
   <div class="card" style="padding: 8px;">
     <div class="row" style="justify-content: space-between; padding: 0 4px 6px 4px;">
       <span style="font-size: 0.85rem; font-weight: bold;">Live Log</span>
-      <button id="btn-clear" style="padding: 4px 8px; font-size: 0.75rem; background: #333;">Clear</button>
+      <button id="btn-clear" style="padding: 4px 8px; font-size: 0.75rem;">Clear</button>
     </div>
     <pre id="console">[SYS] Bereit. Klicke auf 'Gerät suchen & verbinden'...</pre>
   </div>
@@ -196,10 +206,10 @@ const statusEl = document.getElementById('status');
 const devInfo = document.getElementById('dev-info');
 const consoleEl = document.getElementById('console');
 
-// Befehlsliste (Endungen auf FE FD korrigiert)
+// Hex-Befehle (Lock/Unlock auf alte funktionierende Versionen zurückgesetzt)
 const COMMANDS = {
-  unlock:      "55 AA 00 52 01 00 52 FE FD",
-  lock:        "55 AA 00 52 01 01 53 FE FD",
+  unlock:      "55 AA 00 51 01 00 51 FE FD",
+  lock:        "55 AA 00 51 01 01 52 FE FD",
   kersOff:     "55 AA 00 53 01 00 53 FE FD",
   kersLow:     "55 AA 00 53 01 1E 71 FE FD",
   kersMid:     "55 AA 00 53 01 3C 8F FE FD",
@@ -220,32 +230,51 @@ const COMMANDS = {
   soundOff:    "55 AA 00 60 01 00 60 FE FD"
 };
 
+// Zuweisung der Buttons, Befehle und Ziel-Farben beim Auslösen
 const actionButtons = [
-  { id: 'btn-unlock', hex: COMMANDS.unlock },
-  { id: 'btn-lock', hex: COMMANDS.lock },
-  { id: 'btn-kers-off', hex: COMMANDS.kersOff },
-  { id: 'btn-kers-low', hex: COMMANDS.kersLow },
-  { id: 'btn-kers-mid', hex: COMMANDS.kersMid },
-  { id: 'btn-kers-high', hex: COMMANDS.kersHigh },
-  { id: 'btn-tcs-on', hex: COMMANDS.tcsOn },
-  { id: 'btn-tcs-off', hex: COMMANDS.tcsOff },
-  { id: 'btn-speed-0', hex: COMMANDS.speed0 },
-  { id: 'btn-speed-1', hex: COMMANDS.speed1 },
-  { id: 'btn-speed-2', hex: COMMANDS.speed2 },
-  { id: 'btn-speed-3', hex: COMMANDS.speed3 },
-  { id: 'btn-speed-4', hex: COMMANDS.speed4 },
-  { id: 'btn-speed-5', hex: COMMANDS.speed5 },
-  { id: 'btn-turbo-on', hex: COMMANDS.turboOn },
-  { id: 'btn-turbo-off', hex: COMMANDS.turboOff },
-  { id: 'btn-light-on', hex: COMMANDS.lightOn },
-  { id: 'btn-light-off', hex: COMMANDS.lightOff },
-  { id: 'btn-sound-on', hex: COMMANDS.soundOn },
-  { id: 'btn-sound-off', hex: COMMANDS.soundOff }
+  { id: 'btn-unlock', hex: COMMANDS.unlock, colorClass: 'active-primary', group: 'lock' },
+  { id: 'btn-lock', hex: COMMANDS.lock, colorClass: 'active-danger', group: 'lock' },
+
+  { id: 'btn-kers-off', hex: COMMANDS.kersOff, colorClass: 'active-neutral', group: 'kers' },
+  { id: 'btn-kers-low', hex: COMMANDS.kersLow, colorClass: 'active-secondary', group: 'kers' },
+  { id: 'btn-kers-mid', hex: COMMANDS.kersMid, colorClass: 'active-secondary', group: 'kers' },
+  { id: 'btn-kers-high', hex: COMMANDS.kersHigh, colorClass: 'active-secondary', group: 'kers' },
+
+  { id: 'btn-tcs-on', hex: COMMANDS.tcsOn, colorClass: 'active-primary', group: 'tcs' },
+  { id: 'btn-tcs-off', hex: COMMANDS.tcsOff, colorClass: 'active-neutral', group: 'tcs' },
+
+  { id: 'btn-turbo-on', hex: COMMANDS.turboOn, colorClass: 'active-secondary', group: 'turbo' },
+  { id: 'btn-turbo-off', hex: COMMANDS.turboOff, colorClass: 'active-neutral', group: 'turbo' },
+
+  { id: 'btn-speed-0', hex: COMMANDS.speed0, colorClass: 'active-primary', group: 'speed' },
+  { id: 'btn-speed-1', hex: COMMANDS.speed1, colorClass: 'active-neutral', group: 'speed' },
+  { id: 'btn-speed-2', hex: COMMANDS.speed2, colorClass: 'active-neutral', group: 'speed' },
+  { id: 'btn-speed-3', hex: COMMANDS.speed3, colorClass: 'active-neutral', group: 'speed' },
+  { id: 'btn-speed-4', hex: COMMANDS.speed4, colorClass: 'active-neutral', group: 'speed' },
+  { id: 'btn-speed-5', hex: COMMANDS.speed5, colorClass: 'active-primary', group: 'speed' },
+
+  { id: 'btn-light-on', hex: COMMANDS.lightOn, colorClass: 'active-primary', group: 'light' },
+  { id: 'btn-light-off', hex: COMMANDS.lightOff, colorClass: 'active-neutral', group: 'light' },
+
+  { id: 'btn-sound-on', hex: COMMANDS.soundOn, colorClass: 'active-primary', group: 'sound' },
+  { id: 'btn-sound-off', hex: COMMANDS.soundOff, colorClass: 'active-neutral', group: 'sound' }
 ];
 
 actionButtons.forEach(b => {
   const el = document.getElementById(b.id);
-  if (el) el.onclick = () => sendHex(b.hex);
+  if (el) {
+    el.onclick = () => {
+      // Farben in derselben Gruppe zurücksetzen & aktivierte Farbe setzen
+      actionButtons.filter(item => item.group === b.group).forEach(item => {
+        const itemEl = document.getElementById(item.id);
+        if (itemEl) itemEl.className = '';
+      });
+      el.classList.add(b.colorClass);
+      
+      // Befehl absenden
+      sendHex(b.hex);
+    };
+  }
 });
 
 function log(msg, type = 'sys') {
@@ -381,6 +410,13 @@ async function sendHex(hexString) {
   }
 }
 
+function resetAllButtonColors() {
+  actionButtons.forEach(b => {
+    const el = document.getElementById(b.id);
+    if (el) el.className = '';
+  });
+}
+
 function setButtonsDisabled(disabled) {
   actionButtons.forEach(b => {
     const el = document.getElementById(b.id);
@@ -394,7 +430,7 @@ function connectUI() {
   statusEl.textContent = "Verbunden";
   statusEl.setAttribute('data-state', 'connected');
   btnConn.textContent = "Trennen";
-  btnConn.classList.add('danger');
+  btnConn.style.background = "var(--warn-color)";
   setButtonsDisabled(false);
 }
 
@@ -402,8 +438,9 @@ function disconnectUI() {
   statusEl.textContent = "Getrennt";
   statusEl.setAttribute('data-state', 'disconnected');
   btnConn.textContent = "Gerät suchen & verbinden";
-  btnConn.classList.remove('danger');
+  btnConn.style.background = "var(--accent-color)";
   setButtonsDisabled(true);
+  resetAllButtonColors();
   devInfo.textContent = "Kein Gerät ausgewählt";
   log("Verbindung getrennt.", "sys");
 }
