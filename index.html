@@ -114,6 +114,14 @@
   .tx-text { color: #ff00ff; }
   .sys-text { color: #8b949e; }
   .err-text { color: #ff4d4d; }
+
+  footer {
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--border-color);
+    margin-top: 20px;
+    margin-bottom: 10px;
+  }
 </style>
 </head>
 <body>
@@ -216,6 +224,8 @@
     </div>
     <pre id="console">[SYS] Ready. Click 'Search & Connect Scooter'...</pre>
   </div>
+
+  <footer>by Max</footer>
 </div>
 
 <script>
@@ -242,8 +252,8 @@ const COMMANDS = {
   kersHigh:    "55 AA 00 53 01 5A AD FE FD",
   tcsOn:       "55 AA 00 5F 01 01 60 FE FD",
   tcsOff:      "55 AA 00 5F 01 00 5F FE FD",
-  cruiseOn:    "55 AA 00 5B 01 01 5C FE FD",
-  cruiseOff:   "55 AA 00 5B 01 00 5B FE FD",
+  cruiseOn:    "55 AA 00 52 01 01 53 FE FD",
+  cruiseOff:   "55 AA 00 52 01 00 52 FE FD",
   speed5:      "55 AA 00 6A 01 05 6F FE FD",
   speed4:      "55 AA 00 6A 01 04 6E FE FD",
   speed3:      "55 AA 00 6A 01 03 6D FE FD",
@@ -339,7 +349,6 @@ btnConn.onclick = async () => {
     statusEl.textContent = "Scanning...";
     statusEl.setAttribute('data-state', 'connecting');
 
-    // Build Bluetooth options dynamically based on checkbox state
     const requestOptions = {
       optionalServices: [
         '0000fe01-0000-1000-8000-00805f9b34fb',

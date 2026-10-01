@@ -20,3 +20,5 @@
 55 aa 00 60 01 00 60 fe fd Indicator Sound off
 55 aa 00 57 01 01 58 fe fd auto light on
 55 aa 00 57 01 00 57 fe fd auto light off
+55 aa 00 52 01 01 53 fe fd cruise Control on
+55 aa 00 52 01 00 52 fe fd cruise Control off
