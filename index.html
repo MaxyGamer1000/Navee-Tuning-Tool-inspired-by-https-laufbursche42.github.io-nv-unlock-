@@ -148,11 +148,11 @@ const statusEl = document.getElementById('status');
 const devInfo = document.getElementById('dev-info');
 const consoleEl = document.getElementById('console');
 
-// Hex-Befehle
+// Korrigierte Hex-Befehle
 const HEX_OPEN       = "55 AA 00 51 01 00 51 FE FD";
 const HEX_CLOSE      = "55 AA 00 51 01 01 52 FE FD";
-const HEX_CRUISE_ON  = "55 AA 00 70 6F FE FD";
-const HEX_CRUISE_OFF = "55 AA 00 74 73 FE FD";
+const HEX_CRUISE_ON  = "55 AA 00 52 01 01 53 FE FD";
+const HEX_CRUISE_OFF = "55 AA 00 52 01 00 52 FE FD";
 
 function log(msg, type = 'sys') {
   const time = new Date().toLocaleTimeString();
