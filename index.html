@@ -52,6 +52,7 @@
     margin-bottom: 14px;
   }
   .row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
   input[type="text"] {
     flex: 1; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color);
     background: var(--bg-color); color: #39ff14; font-family: monospace; font-size: 0.9rem; outline: none;
@@ -61,6 +62,8 @@
     cursor: pointer; background: var(--accent-color); color: white; transition: background 0.2s;
   }
   button:hover:not(:disabled) { background: var(--accent-hover); }
+  button.primary { background: #1f6feb; }
+  button.primary:hover:not(:disabled) { background: #388bfd; }
   button.danger { background: var(--warn-color); }
   button:disabled { opacity: 0.4; cursor: not-allowed; }
   
@@ -78,7 +81,7 @@
 <body>
 <div class="wrap">
   <header>
-    <h1>BLE Terminal & Sniffer</h1>
+    <h1>BLE Terminal & Control</h1>
     <span class="status" id="status" data-state="disconnected">Getrennt</span>
   </header>
 
@@ -92,10 +95,20 @@
     </div>
   </div>
 
-  <!-- HEX SENDEN -->
+  <!-- SCHNELLSTEUERUNG (ÖFFNEN / SCHLIESSEN) -->
   <div class="card">
+    <div style="font-size: 0.85rem; font-weight: bold; margin-bottom: 8px;">Schnellbefehle</div>
+    <div class="grid-2">
+      <button id="btn-open" class="primary" disabled>🔓 Öffnen</button>
+      <button id="btn-close" class="danger" disabled>🔒 Schließen</button>
+    </div>
+  </div>
+
+  <!-- MANUELLES HEX SENDEN -->
+  <div class="card">
+    <div style="font-size: 0.85rem; font-weight: bold; margin-bottom: 8px;">Manuelles Hex Terminal</div>
     <div class="row">
-      <input type="text" id="hex-input" placeholder="Hex eingeben (z.B. 55 AA 03 01 00 04)" disabled>
+      <input type="text" id="hex-input" placeholder="Hex eingeben (z.B. 55 AA 00...)" disabled>
       <button id="btn-send" disabled>Senden</button>
     </div>
   </div>
@@ -117,11 +130,16 @@ let rxChars = [];
 
 const btnConn = document.getElementById('btn-conn');
 const btnSend = document.getElementById('btn-send');
+const btnOpen = document.getElementById('btn-open');
+const btnClose = document.getElementById('btn-close');
 const btnClear = document.getElementById('btn-clear');
 const hexInput = document.getElementById('hex-input');
 const statusEl = document.getElementById('status');
 const devInfo = document.getElementById('dev-info');
 const consoleEl = document.getElementById('console');
+
+const HEX_OPEN  = "55 AA 00 51 01 00 51 FE FD";
+const HEX_CLOSE = "55 AA 00 51 01 01 52 FE FD";
 
 function log(msg, type = 'sys') {
   const time = new Date().toLocaleTimeString();
@@ -151,7 +169,6 @@ btnConn.onclick = async () => {
     statusEl.textContent = "Suche...";
     statusEl.setAttribute('data-state', 'connecting');
 
-    // Scannet absolut jedes Bluetooth-Gerät ohne Filter
     const device = await navigator.bluetooth.requestDevice({
       acceptAllDevices: true,
       optionalServices: [
@@ -188,13 +205,11 @@ btnConn.onclick = async () => {
 
           log(` -> Char: ${c.uuid} [${props.join(', ')}]`, "sys");
 
-          // Schreibkanal zuweisen
           if ((c.properties.write || c.properties.writeWithoutResponse) && !txChar) {
             txChar = c;
             log(`    [+] Als TX (Sende-Kanal) ausgewählt`, "tx");
           }
 
-          // Lese/Notify-Kanäle aktivieren
           if (c.properties.notify || c.properties.indicate) {
             try {
               await c.startNotifications();
@@ -229,18 +244,21 @@ function handleRX(event) {
   log(`RX <- ${hex}`, "rx");
 }
 
-btnSend.onclick = sendHex;
-hexInput.onkeydown = (e) => { if (e.key === 'Enter') sendHex(); };
+btnSend.onclick = () => sendHex(hexInput.value);
+btnOpen.onclick = () => sendHex(HEX_OPEN);
+btnClose.onclick = () => sendHex(HEX_CLOSE);
 
-async function sendHex() {
+hexInput.onkeydown = (e) => { if (e.key === 'Enter') sendHex(hexInput.value); };
+
+async function sendHex(hexString) {
   if (!txChar) {
     log("Fehler: Kein TX-Schreibkanal vorhanden.", "err");
     return;
   }
 
-  const rawInput = hexInput.value.replace(/[^0-9a-fA-F]/g, '');
+  const rawInput = hexString.replace(/[^0-9a-fA-F]/g, '');
   if (rawInput.length === 0 || rawInput.length % 2 !== 0) {
-    log("Ungültiger Hex-Code! Bitte zweistellige Hex-Werte eingeben (z. B. 55 AA 01).", "err");
+    log("Ungültiger Hex-Code! Bitte zweistellige Hex-Werte eingeben.", "err");
     return;
   }
 
@@ -265,6 +283,8 @@ function connectUI() {
   btnConn.textContent = "Trennen";
   btnConn.classList.add('danger');
   btnSend.disabled = false;
+  btnOpen.disabled = false;
+  btnClose.disabled = false;
   hexInput.disabled = false;
 }
 
@@ -274,6 +294,8 @@ function disconnectUI() {
   btnConn.textContent = "Gerät suchen & verbinden";
   btnConn.classList.remove('danger');
   btnSend.disabled = true;
+  btnOpen.disabled = true;
+  btnClose.disabled = true;
   hexInput.disabled = true;
   devInfo.textContent = "Kein Gerät ausgewählt";
   log("Verbindung getrennt.", "sys");
